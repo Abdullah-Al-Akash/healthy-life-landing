@@ -57,8 +57,7 @@ const ProductPage = () => {
       <DeliveryInfo features={product.deliveryFeatures || []} />
       <WhyChooseUs features={product.whyChooseUs || []} />
       <VideoSection video={product.video || null} />
-      <Reviews />
-      {/* <Reviews reviews={product.reviews || []} /> */}
+      <Reviews reviews={product.reviews || []} />
       <FAQ faqs={product.faqs || []} contactInfo={product.contactInfo || {}} />
     </div>
   );
