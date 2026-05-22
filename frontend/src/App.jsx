@@ -12,6 +12,7 @@ import "swiper/css/pagination";
 import "swiper/css/navigation";
 import Products from "./pages/admin/Products";
 import Orders from "./pages/admin/Orders";
+import Users from "./pages/admin/Users";
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="products" element={<Products />} />
           <Route path="orders" element={<Orders />} />
+          <Route path="users" element={<Users />} />
           {/* পরবর্তীতে আরও রাউটস যোগ হবে */}
         </Route>
       </Routes>
