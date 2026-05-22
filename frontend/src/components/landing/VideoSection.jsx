@@ -2,22 +2,24 @@ import { useState } from "react";
 import { FiPlay, FiX, FiShoppingCart } from "react-icons/fi";
 import CheckoutDrawer from "./CheckoutDrawer";
 
-const VideoSection = () => {
+const VideoSection = ({ video = null }) => {
   const [showModal, setShowModal] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // ডাইনামিক ডাটা - পরে API থেকে আসবে
-  const videoData = {
+  // ডিফল্ট ভিডিও ডাটা (যদি API থেকে না আসে)
+  const defaultVideo = {
     thumbnail: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
     videoId: "dQw4w9WgXcQ",
     title: "আমাদের পণ্য সম্পর্কে জানুন",
-    description:
-      "কিভাবে আমাদের হারবাল পণ্য আপনার জীবনযাত্রায় পরিবর্তন আনতে পারে তা দেখুন",
+    description: "কিভাবে আমাদের হারবাল পণ্য আপনার জীবনযাত্রায় পরিবর্তন আনতে পারে তা দেখুন",
   };
 
+  const currentVideo = video || defaultVideo;
+
+  // প্রোডাক্ট ডাটা (ভিডিও সেকশনের জন্য)
   const product = {
     id: "video-product",
-    title: "ভিডিওতে দেখা পণ্য",
+    title: currentVideo.title || "ভিডিওতে দেখা পণ্য",
     offerPrice: "২৯৯",
     originalPrice: "৪৯৯",
     image: "https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=1200",
@@ -48,7 +50,7 @@ const VideoSection = () => {
               {/* থাম্বনেইল */}
               <div
                 className="relative aspect-video bg-cover bg-center cursor-pointer"
-                style={{ backgroundImage: `url(${videoData.thumbnail})` }}
+                style={{ backgroundImage: `url(${currentVideo.thumbnail})` }}
                 onClick={() => setShowModal(true)}
               >
                 {/* ওভারলে */}
@@ -62,10 +64,10 @@ const VideoSection = () => {
                 {/* ভিডিও তথ্য */}
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 md:p-6">
                   <h3 className="text-white text-lg md:text-xl font-bold mb-1">
-                    {videoData.title}
+                    {currentVideo.title}
                   </h3>
                   <p className="text-white/80 text-xs md:text-sm">
-                    {videoData.description}
+                    {currentVideo.description}
                   </p>
                 </div>
               </div>
@@ -125,7 +127,7 @@ const VideoSection = () => {
               {/* হেডার */}
               <div className="flex justify-between items-center p-4 border-b">
                 <h3 className="font-semibold text-gray-800">
-                  {videoData.title}
+                  {currentVideo.title}
                 </h3>
                 <button
                   onClick={() => setShowModal(false)}
@@ -139,7 +141,7 @@ const VideoSection = () => {
               <div className="aspect-video">
                 <iframe
                   className="w-full h-full"
-                  src={`https://www.youtube.com/embed/${videoData.videoId}?autoplay=1`}
+                  src={`https://www.youtube.com/embed/${currentVideo.videoId}?autoplay=1`}
                   title="YouTube video player"
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

@@ -7,6 +7,8 @@ const {
   sendToCourier,
   updateTracking,
   getOrderStats,
+  searchOrders,
+  getOrderByOrderId
 } = require('../controllers/orderController');
 const { protect, admin } = require('../middleware/auth');
 
@@ -14,6 +16,8 @@ const router = express.Router();
 
 // পাবলিক
 router.post('/', createOrder);
+router.get('/search', searchOrders);
+router.get('/track/:orderId', getOrderByOrderId);
 
 // অ্যাডমিন
 router.get('/', protect, admin, getOrders);

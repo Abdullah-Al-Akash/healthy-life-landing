@@ -12,18 +12,23 @@ const generateOrderId = () => {
 };
 
 // @desc    Create order
+// @desc    Create order
 const createOrder = async (req, res) => {
   try {
     const db = getDB();
-    const { user } = req;
+    
+    const orderId = `ORD-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+    
+    // রিয়েল আইপি নেওয়া
+    const clientIp = req.realIp || req.ip || 'unknown';
     
     const newOrder = {
-      orderId: generateOrderId(),
+      orderId,
       ...req.body,
       paymentMethod: 'cod',
       paymentStatus: 'pending',
       orderStatus: 'pending',
-      ipAddress: req.ip,
+      ipAddress: clientIp,  // রিয়েল আইপি সেভ হবে
       userAgent: req.headers['user-agent'],
       history: [{
         status: 'pending',
@@ -293,6 +298,95 @@ const getOrderStats = async (req, res) => {
   }
 };
 
+// @desc    Search orders by orderId or phone
+// @route   GET /api/orders/search?q=:query
+const searchOrders = async (req, res) => {
+  try {
+    const db = getDB();
+    const { q } = req.query;
+    
+    if (!q) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Please provide an order ID or phone number' 
+      });
+    }
+    
+    let query = {};
+    
+    // চেক করো কোয়েরি টা অর্ডার আইডি নাকি ফোন নাম্বার
+    if (q.startsWith('ORD-')) {
+      // অর্ডার আইডি দিয়ে খোঁজা
+      query = { orderId: q };
+      const order = await db.collection('orders').findOne(query);
+      
+      if (!order) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Order not found' 
+        });
+      }
+      
+      return res.json({
+        success: true,
+        type: 'single',
+        order: order
+      });
+      
+    } else {
+      // ফোন নাম্বার দিয়ে খোঁজা (একাধিক অর্ডার আসতে পারে)
+      const phoneRegex = new RegExp(q, 'i');
+      query = { 'customerInfo.phone': phoneRegex };
+      
+      const orders = await db.collection('orders')
+        .find(query)
+        .sort({ createdAt: -1 })
+        .toArray();
+      
+      if (orders.length === 0) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'No orders found for this phone number' 
+        });
+      }
+      
+      return res.json({
+        success: true,
+        type: 'multiple',
+        count: orders.length,
+        orders: orders
+      });
+    }
+    
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+// @desc    Get order by orderId (public)
+// @route   GET /api/orders/track/:orderId
+const getOrderByOrderId = async (req, res) => {
+  try {
+    const db = getDB();
+    const { orderId } = req.params;
+    
+    const order = await db.collection('orders').findOne({ orderId: orderId });
+    
+    if (!order) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Order not found' 
+      });
+    }
+    
+    res.json({
+      success: true,
+      order: order
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createOrder,
   getOrders,
@@ -301,4 +395,6 @@ module.exports = {
   sendToCourier,
   updateTracking,
   getOrderStats,
+  searchOrders,
+  getOrderByOrderId
 };

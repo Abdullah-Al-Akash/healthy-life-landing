@@ -1,31 +1,33 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import MainLayout from "./components/layout/MainLayout";
-import LandingPage from "./pages/LandingPage";
+import HomePage from "./pages/HomePage";        // ← নতুন
+import ProductPage from "./pages/ProductPage";  // ← নতুন
 import AdminLogin from "./pages/AdminLogin";
 import AdminLayout from "./components/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
-import PrivateRoute from "./components/PrivateRoute";
-
-// Swiper CSS
-import "swiper/css";
-import "swiper/css/pagination";
-import "swiper/css/navigation";
 import Products from "./pages/admin/Products";
 import Orders from "./pages/admin/Orders";
 import Users from "./pages/admin/Users";
+import PrivateRoute from "./components/PrivateRoute";
+import TrackOrder from "./pages/TrackOrder";
+
+import "swiper/css";
+import "swiper/css/pagination";
+import "swiper/css/navigation";
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* পাবলিক রাউটস - আগের মতোই */}
-        <Route path="/" element={<MainLayout><LandingPage /></MainLayout>} />
-        <Route path="/product/:slug" element={<MainLayout><LandingPage /></MainLayout>} />
+        {/* পাবলিক রাউটস */}
+        <Route path="/" element={<MainLayout><HomePage /></MainLayout>} />
+        <Route path="/product/:slug" element={<MainLayout><ProductPage /></MainLayout>} />
+        <Route path="/track-order" element={<MainLayout><TrackOrder /></MainLayout>} />
         
-        {/* অ্যাডমিন লগইন - আলাদা পেজ */}
+        {/* অ্যাডমিন লগইন */}
         <Route path="/admin/login" element={<AdminLogin />} />
         
-        {/* অ্যাডমিন প্যানেল - প্রটেক্টেড */}
+        {/* অ্যাডমিন প্যানেল */}
         <Route path="/admin" element={
           <PrivateRoute allowedRoles={['super_admin', 'developer', 'admin']}>
             <AdminLayout />
@@ -35,7 +37,6 @@ function App() {
           <Route path="products" element={<Products />} />
           <Route path="orders" element={<Orders />} />
           <Route path="users" element={<Users />} />
-          {/* পরবর্তীতে আরও রাউটস যোগ হবে */}
         </Route>
       </Routes>
     </Router>
