@@ -21,12 +21,13 @@ const ProductPage = () => {
         const response = await productApi.getBySlug(slug);
         setProduct(response.data.product);
       } catch (err) {
+        console.error("Error fetching product:", err);
         setError("Product not found");
       } finally {
         setLoading(false);
       }
     };
-    
+
     if (slug) {
       fetchProduct();
     }
@@ -44,8 +45,12 @@ const ProductPage = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Product Not Found</h2>
-          <p className="text-gray-500">The product you're looking for doesn't exist.</p>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            Product Not Found
+          </h2>
+          <p className="text-gray-500">
+            The product you're looking for doesn't exist.
+          </p>
         </div>
       </div>
     );
@@ -53,45 +58,44 @@ const ProductPage = () => {
 
   return (
     <div>
-      <BannerCarousel 
-        banners={product.banners || []} 
+      <BannerCarousel
+        banners={product.banners || []}
         config={product.bannerConfig || {}}
+        buttonTexts={product.buttonTexts || {}} // ← এই লাইন যোগ করো
       />
-      
-      <DeliveryInfo 
-        features={product.deliveryFeatures || []} 
-      />
-      
-      <WhyChooseUs 
-        features={product.whyChooseUs || []} 
+
+      <DeliveryInfo features={product.deliveryFeatures || []} />
+
+      <WhyChooseUs
+        features={product.whyChooseUs || []}
         stats={product.whyChooseUsStats || []}
         heading={product.sectionHeadings?.whyChooseUs}
         orderBanner={product.orderBanner}
         buttonText={product.buttonText}
+        currentProduct={product} // ← পুরো প্রোডাক্ট পাস করো
       />
-      
-      <VideoSection 
-        video={product.video || null} 
+
+      <VideoSection
+        video={product.video || null}
         heading={product.sectionHeadings?.video}
         stats={product.videoStats}
         buttonText={product.buttonText}
+        currentProduct={product} // ← যোগ করো
       />
-      
-      <Reviews 
-        reviews={product.reviews || []} 
+
+      <Reviews
+        reviews={product.reviews || []}
         heading={product.sectionHeadings?.reviews}
         stats={product.reviewStats}
         buttonText={product.buttonText}
-        productInfo={product.productInfo}
       />
-      
-      <FAQ 
-        faqs={product.faqs || []} 
+
+      <FAQ
+        faqs={product.faqs || []}
         contactInfo={product.contactInfo || {}}
         heading={product.sectionHeadings?.faq}
         contactHeading={product.contactHeading}
         buttonText={product.buttonText}
-        productInfo={product.productInfo}
         supportHours={product.supportHours}
       />
     </div>

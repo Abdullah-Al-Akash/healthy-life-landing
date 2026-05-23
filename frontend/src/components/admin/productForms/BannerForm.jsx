@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   FaPlus,
   FaTrash,
@@ -17,6 +18,23 @@ const BannerForm = ({ data, onChange }) => {
   // চেক করা ইউজার ডেভেলপার কিনা
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
   const isDeveloper = currentUser.role === "developer";
+
+  // ব্যানার বাটন টেক্সটের জন্য লোকাল স্টেট - ডিফল্ট খালি
+  const [localBannerButtonText, setLocalBannerButtonText] = useState(
+    data.buttonTexts?.banner || ""
+  );
+
+  // ডাটা পরিবর্তন হলে লোকাল স্টেট আপডেট
+  useEffect(() => {
+    setLocalBannerButtonText(data.buttonTexts?.banner || "");
+  }, [data.buttonTexts?.banner]);
+
+  // বাটন টেক্সট পরিবর্তন হ্যান্ডলার - খালি রাখলে খালিই থাকবে
+  const handleBannerButtonChange = (e) => {
+    const newValue = e.target.value;
+    setLocalBannerButtonText(newValue);
+    onChange("buttonTexts", { ...data.buttonTexts, banner: newValue });
+  };
 
   const addBanner = () => {
     onChange("banners", [
@@ -135,6 +153,37 @@ const BannerForm = ({ data, onChange }) => {
           </p>
         </div>
       )}
+
+      {/* ব্যানার বাটন টেক্সট সেটিংস - খালি রাখলে খালি থাকবে */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-rose-50 to-pink-50 px-4 py-3 border-b">
+          <h3 className="text-md font-semibold text-gray-800 flex items-center gap-2">
+            🔘 Banner Button Settings
+          </h3>
+          <p className="text-xs text-gray-500 mt-0.5">ব্যানার সেকশনের অর্ডার বাটনের টেক্সট সেট করুন</p>
+        </div>
+        <div className="p-4">
+          <div>
+            <label className="text-xs font-medium text-gray-600">Button Text</label>
+            <input
+              type="text"
+              value={localBannerButtonText}
+              onChange={handleBannerButtonChange}
+              placeholder="এখনই অর্ডার করুন (খালি রাখতে পারেন)"
+              className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-rose-400 focus:border-rose-400 outline-none transition"
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              খালি রাখলে ব্যানারে ডিফল্ট "এখনই অর্ডার করুন" দেখাবে
+            </p>
+            <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs text-gray-500 mb-2">প্রিভিউ:</p>
+              <button className="bg-gradient-to-r from-rose-500 to-pink-500 text-white px-4 py-1.5 rounded-full text-xs font-semibold">
+                {localBannerButtonText || "এখনই অর্ডার করুন"} →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* ব্যানার লিস্ট */}
       <div className="space-y-5">

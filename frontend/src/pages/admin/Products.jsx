@@ -11,8 +11,6 @@ import VideoForm from "../../components/admin/productForms/VideoForm";
 import FaqForm from "../../components/admin/productForms/FaqForm";
 import ReviewForm from "../../components/admin/productForms/ReviewForm";
 
-// ContactForm ইম্পোর্ট করো না - দরকার নেই
-
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,7 +36,14 @@ const Products = () => {
       faq: { title: "", highlightText: "", subtitle: "" }
     },
     orderBanner: { title: "", subtitle: "" },
-    buttonText: "এখনই অর্ডার করুন",
+    // আলাদা আলাদা বাটন টেক্সট
+    buttonTexts: {
+      banner: "এখনই অর্ডার করুন",
+      whyChooseUs: "এখনই অর্ডার করুন",
+      video: "এখনই অর্ডার করুন",
+      reviews: "এখনই অর্ডার করুন",
+      faq: "এখনই অর্ডার করুন"
+    },
     productInfo: { id: "", title: "", offerPrice: "", image: "" }
   });
 
@@ -88,7 +93,13 @@ const Products = () => {
         faq: { title: "প্রায়শই জিজ্ঞাসিত প্রশ্ন", highlightText: "প্রশ্ন", subtitle: "আপনার মনে হতে পারে এমন কিছু সাধারণ প্রশ্নের উত্তর জেনে নিন" }
       },
       orderBanner: product.orderBanner || { title: "আজই অর্ডার করুন ও পান বিশেষ ছাড়!", subtitle: "সীমিত সময়ের অফার। দেরি না করে এখনই অর্ডার করুন。" },
-      buttonText: product.buttonText || "এখনই অর্ডার করুন",
+      buttonTexts: product.buttonTexts || {
+        banner: "এখনই অর্ডার করুন",
+        whyChooseUs: "এখনই অর্ডার করুন",
+        video: "এখনই অর্ডার করুন",
+        reviews: "এখনই অর্ডার করুন",
+        faq: "এখনই অর্ডার করুন"
+      },
       productInfo: product.productInfo || { id: "", title: "", offerPrice: "", image: "" }
     });
     setCurrentStep(1);
@@ -114,7 +125,13 @@ const Products = () => {
         faq: { title: "প্রায়শই জিজ্ঞাসিত প্রশ্ন", highlightText: "প্রশ্ন", subtitle: "আপনার মনে হতে পারে এমন কিছু সাধারণ প্রশ্নের উত্তর জেনে নিন" }
       },
       orderBanner: { title: "আজই অর্ডার করুন ও পান বিশেষ ছাড়!", subtitle: "সীমিত সময়ের অফার। দেরি না করে এখনই অর্ডার করুন。" },
-      buttonText: "এখনই অর্ডার করুন",
+      buttonTexts: {
+        banner: "এখনই অর্ডার করুন",
+        whyChooseUs: "এখনই অর্ডার করুন",
+        video: "এখনই অর্ডার করুন",
+        reviews: "এখনই অর্ডার করুন",
+        faq: "এখনই অর্ডার করুন"
+      },
       productInfo: { id: "", title: "", offerPrice: "", image: "" }
     });
     setCurrentStep(1);
@@ -141,7 +158,7 @@ const Products = () => {
     }
   };
 
-  const totalSteps = 6; // এখন 6 স্টেপ (কারণ 5 & 7 একই)
+  const totalSteps = 6;
   const progress = (currentStep / totalSteps) * 100;
 
   if (loading) {
@@ -201,7 +218,6 @@ const Products = () => {
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            {/* হেডার */}
             <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
               <div>
                 <h2 className="text-xl font-bold">{editingProduct ? "Edit Product" : "New Product"}</h2>
@@ -210,14 +226,12 @@ const Products = () => {
               <button onClick={() => setShowModal(false)}><FaTimes className="text-gray-400" /></button>
             </div>
 
-            {/* প্রগ্রেস বার */}
             <div className="px-6 pt-4">
               <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div className="h-full bg-rose-500 transition-all" style={{ width: `${progress}%` }}></div>
               </div>
             </div>
 
-            {/* স্টেপ কন্টেন্ট */}
             <div className="p-6">
               {currentStep === 1 && (
                 <BasicInfoForm data={formData} onChange={(field, value) => setFormData({ ...formData, [field]: value })} />
@@ -239,7 +253,6 @@ const Products = () => {
               )}
             </div>
 
-            {/* বাটন */}
             <div className="sticky bottom-0 bg-white border-t px-6 py-4 flex justify-between">
               <button
                 onClick={() => setCurrentStep(p => p - 1)}

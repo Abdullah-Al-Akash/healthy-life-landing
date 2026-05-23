@@ -1,8 +1,15 @@
-import { FaLeaf, FaTruck, FaShieldAlt, FaSmile, FaHeadset, FaCertificate } from "react-icons/fa";
+import {
+  FaLeaf,
+  FaTruck,
+  FaShieldAlt,
+  FaSmile,
+  FaHeadset,
+  FaCertificate,
+} from "react-icons/fa";
 import { useState } from "react";
 import CheckoutDrawer from "./CheckoutDrawer";
 
-// উপলব্ধ আইকন লিস্ট (ফর্মে সিলেক্ট করার জন্য)
+// উপলব্ধ আইকন লিস্ট
 export const AVAILABLE_ICONS = [
   { name: "FaLeaf", icon: <FaLeaf className="w-6 h-6 md:w-7 md:h-7" /> },
   { name: "FaTruck", icon: <FaTruck className="w-6 h-6 md:w-7 md:h-7" /> },
@@ -12,12 +19,13 @@ export const AVAILABLE_ICONS = [
   { name: "FaCertificate", icon: <FaCertificate className="w-6 h-6 md:w-7 md:h-7" /> },
 ];
 
-const WhyChooseUs = ({ 
-  features = [], 
-  stats = [], 
-  heading = {}, 
-  orderBanner = {}, 
-  buttonText = "এখনই অর্ডার করুন" 
+const WhyChooseUs = ({
+  features = [],
+  stats = [],
+  heading = {},
+  orderBanner = {},
+  buttonText = "এখনই অর্ডার করুন",
+  currentProduct = null,
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -26,27 +34,20 @@ const WhyChooseUs = ({
   const defaultHeading = {
     title: "কেন বেছে নেবেন আমাদের?",
     highlightText: "আমাদের?",
-    subtitle: "আমরা চাই আপনাকে সেরা সেবা ও মানসম্মত পণ্য দিতে। জেনে নিন কেন আমরা সবার প্রথম পছন্দ।"
+    subtitle: "আমরা চাই আপনাকে সেরা সেবা ও মানসম্মত পণ্য দিতে। জেনে নিন কেন আমরা সবার প্রথম পছন্দ।",
   };
 
   // ডিফল্ট অর্ডার ব্যানার
   const defaultOrderBanner = {
     title: "আজই অর্ডার করুন ও পান বিশেষ ছাড়!",
-    subtitle: "সীমিত সময়ের অফার। দেরি না করে এখনই অর্ডার করুন।"
+    subtitle: "সীমিত সময়ের অফার। দেরি না করে এখনই অর্ডার করুন।",
   };
 
   const { title, highlightText, subtitle } = heading || defaultHeading;
   const { title: bannerTitle, subtitle: bannerSubtitle } = orderBanner || defaultOrderBanner;
 
-  // ডিফল্ট ফিচার (যদি API থেকে না আসে)
-  const defaultFeatures = [
-    // { id: 1, icon: "FaLeaf", title: "১০০% খাঁটি পণ্য", description: "প্রাকৃতিক উপাদানে তৈরি, কোনো কেমিক্যাল বা প্রিজারভেটিভ নেই" },
-    // { id: 2, icon: "FaTruck", title: "দ্রুত ডেলিভারি", description: "সারাদেশে ২৪-৪৮ ঘণ্টার মধ্যে পণ্য পৌঁছে দিন" },
-    // { id: 3, icon: "FaShieldAlt", title: "নিরাপদ পেমেন্ট", description: "ক্যাশ অন ডেলিভারি ও অনলাইন পেমেন্ট সুবিধা" },
-    // { id: 4, icon: "FaSmile", title: "গ্রাহক সন্তুষ্টি", description: "৯৮% গ্রাহক আমাদের পণ্য ও সেবায় সন্তুষ্ট" },
-    // { id: 5, icon: "FaHeadset", title: "২৪/৭ সাপোর্ট", description: "যেকোনো সমস্যায় আমাদের টিম আপনার পাশে" },
-    // { id: 6, icon: "FaCertificate", title: "সনদপ্রাপ্ত পণ্য", description: "গুণগত মানের সার্টিফিকেট প্রাপ্ত ও অনুমোদিত" },
-  ];
+  // ডিফল্ট ফিচার
+  const defaultFeatures = [];
 
   // ডিফল্ট পরিসংখ্যান
   const defaultStats = [
@@ -73,19 +74,32 @@ const WhyChooseUs = ({
   };
 
   const handleOrderClick = () => {
+    if (!currentProduct) return;
+
+    // ব্যানার থেকে প্রথম ইমেজ ও দাম নাও
+    const firstBanner = currentProduct.banners?.[0] || {};
+
     setSelectedProduct({
-      id: "featured-product",
-      title: "হারবাল পণ্য প্যাকেজ",
-      offerPrice: "৯৯৯",
-      image: "https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=1200",
+      id: currentProduct._id,
+      title: currentProduct.navTitle || firstBanner.title || "হারবাল পণ্য",
+      offerPrice: firstBanner.offerPrice || "২৯৯",
+      originalPrice: firstBanner.originalPrice,
+      image: firstBanner.image || "https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=1200",
+      buttonText: buttonText,
     });
     setIsDrawerOpen(true);
   };
 
   // হাইলাইট টেক্সট সহ টাইটেল রেন্ডার
   const renderTitle = () => {
-    if (!highlightText) return <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">{title}</h2>;
-    
+    if (!highlightText) {
+      return (
+        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+          {title}
+        </h2>
+      );
+    }
+
     const parts = title.split(highlightText);
     return (
       <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
@@ -100,8 +114,7 @@ const WhyChooseUs = ({
     <>
       <section className="py-16 md:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          {/* সেকশন হেডার - ডাইনামিক */}
+          {/* সেকশন হেডার */}
           <div className="text-center mb-12 md:mb-16">
             {renderTitle()}
             <div className="w-24 h-1 bg-rose-500 mx-auto mb-6 rounded-full"></div>
@@ -110,7 +123,7 @@ const WhyChooseUs = ({
             </p>
           </div>
 
-          {/* ফিচার গ্রিড - ডাইনামিক */}
+          {/* ফিচার গ্রিড */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {displayFeatures.map((feature, index) => (
               <div
@@ -118,7 +131,7 @@ const WhyChooseUs = ({
                 className="group bg-white border border-gray-100 rounded-2xl p-6 md:p-8 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
               >
                 <div className="w-14 h-14 md:w-16 md:h-16 bg-rose-50 rounded-xl flex items-center justify-center mb-5 text-rose-500 group-hover:bg-rose-500 group-hover:text-white transition-all duration-300">
-                  {typeof feature.icon === 'string' ? getIcon(feature.icon) : feature.icon}
+                  {typeof feature.icon === "string" ? getIcon(feature.icon) : feature.icon}
                 </div>
                 <h3 className="text-xl md:text-2xl font-semibold text-gray-800 mb-2">
                   {feature.title}
@@ -130,7 +143,7 @@ const WhyChooseUs = ({
             ))}
           </div>
 
-          {/* অর্ডার ব্যানার - ডাইনামিক */}
+          {/* অর্ডার ব্যানার */}
           <div className="mt-16 bg-gradient-to-r from-rose-500 to-rose-600 rounded-2xl p-8 md:p-10 text-center text-white">
             <h3 className="text-2xl md:text-3xl font-bold mb-3">
               {bannerTitle}
@@ -146,11 +159,13 @@ const WhyChooseUs = ({
             </button>
           </div>
 
-          {/* পরিসংখ্যান - ডাইনামিক */}
+          {/* পরিসংখ্যান */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12">
             {displayStats.map((stat, index) => (
               <div key={index} className="text-center p-4 bg-gray-50 rounded-xl">
-                <div className="text-2xl md:text-3xl font-bold text-rose-500">{stat.number}</div>
+                <div className="text-2xl md:text-3xl font-bold text-rose-500">
+                  {stat.number}
+                </div>
                 <div className="text-gray-600 text-sm mt-1">{stat.label}</div>
               </div>
             ))}

@@ -6,7 +6,8 @@ const VideoSection = ({
   video = null, 
   heading = {}, 
   buttonText = "এখনই অর্ডার করুন",
-  stats = {} 
+  stats = {},
+  currentProduct = null  // ← পুরো প্রোডাক্ট পাস করো
 }) => {
   const [showModal, setShowModal] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -39,13 +40,15 @@ const VideoSection = ({
 
   const currentVideo = video || defaultVideo;
 
-  // প্রোডাক্ট ডাটা (ভিডিও সেকশনের জন্য)
+  // প্রোডাক্ট ডাটা (ভিডিও সেকশনের জন্য) - currentProduct থেকে নাও
+  const firstBanner = currentProduct?.banners?.[0] || {};
+  
   const product = {
-    id: "video-product",
-    title: currentVideo.title || "ভিডিওতে দেখা পণ্য",
-    offerPrice: "২৯৯",
-    originalPrice: "৪৯৯",
-    image: "https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=1200",
+    id: currentProduct?._id || "video-product",
+    title: currentProduct?.navTitle || currentVideo.title || "ভিডিওতে দেখা পণ্য",
+    offerPrice: firstBanner.offerPrice || "২৯৯",
+    originalPrice: firstBanner.originalPrice,
+    image: firstBanner.image || "https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=1200",
   };
 
   // হাইলাইট টেক্সট সহ টাইটেল রেন্ডার
