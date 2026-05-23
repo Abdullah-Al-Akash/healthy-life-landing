@@ -8,7 +8,8 @@ const {
   updateTracking,
   getOrderStats,
   searchOrders,
-  getOrderByOrderId
+  getOrderByOrderId,
+  updateCustomerInfo
 } = require('../controllers/orderController');
 const { protect, admin } = require('../middleware/auth');
 
@@ -26,5 +27,6 @@ router.get('/:id', protect, admin, getOrderById);
 router.put('/:id/status', protect, admin, updateOrderStatus);
 router.post('/:id/courier', protect, admin, sendToCourier);
 router.put('/:id/tracking', protect, admin, updateTracking);
+router.put('/:id/customer', protect, admin, updateCustomerInfo);
 
 module.exports = router;

@@ -12,12 +12,11 @@ const generateOrderId = () => {
 };
 
 // @desc    Create order
-// @desc    Create order
 const createOrder = async (req, res) => {
   try {
     const db = getDB();
     
-    const orderId = `ORD-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+    const orderId = generateOrderId();
     
     // রিয়েল আইপি নেওয়া
     const clientIp = req.realIp || req.ip || 'unknown';
@@ -28,7 +27,7 @@ const createOrder = async (req, res) => {
       paymentMethod: 'cod',
       paymentStatus: 'pending',
       orderStatus: 'pending',
-      ipAddress: clientIp,  // রিয়েল আইপি সেভ হবে
+      ipAddress: clientIp,
       userAgent: req.headers['user-agent'],
       history: [{
         status: 'pending',
@@ -132,7 +131,6 @@ const updateOrderStatus = async (req, res) => {
       return res.status(404).json({ message: 'Order not found' });
     }
     
-    // ইতিহাসে যোগ
     const historyEntry = {
       status,
       note: note || `Status changed from ${order.orderStatus} to ${status}`,
@@ -166,7 +164,7 @@ const sendToCourier = async (req, res) => {
   try {
     const db = getDB();
     const { id } = req.params;
-    const { provider, trackingId, trackingUrl } = req.body;
+    const { provider } = req.body;  // trackingId আর trackingUrl ফ্রন্টএন্ড থেকে না, ব্যাকএন্ড জেনারেট করবে
     const user = req.user;
     
     const validProviders = ['steadfast', 'pathao'];
@@ -179,20 +177,24 @@ const sendToCourier = async (req, res) => {
       return res.status(404).json({ message: 'Order not found' });
     }
     
-    // কুরিয়ার তথ্য সেভ
+    // ট্র্যাকিং ID এবং URL জেনারেট
+    const trackingId = `${provider.toUpperCase()}-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+    const trackingUrl = provider === 'steadfast' 
+      ? `https://steadfast.com.bd/tracking/${trackingId}`
+      : `https://pathao.com/tracking/${trackingId}`;
+    
     const courierInfo = {
       provider,
-      trackingId: trackingId || null,
-      trackingUrl: trackingUrl || null,
+      trackingId,
+      trackingUrl,
       sentAt: new Date(),
       sentBy: user._id,
       sentByName: user.name,
     };
     
-    // ইতিহাসে যোগ
     const historyEntry = {
-      status: order.orderStatus,
-      note: `Order sent to ${provider} courier. Tracking ID: ${trackingId || 'N/A'}`,
+      status: 'approved',
+      note: `Order sent to ${provider} courier. Tracking ID: ${trackingId}`,
       changedBy: user._id,
       changedByName: user.name,
       timestamp: new Date(),
@@ -203,6 +205,7 @@ const sendToCourier = async (req, res) => {
       { 
         $set: { 
           courierInfo,
+          orderStatus: 'approved',  // কুরিয়ারে পাঠানোর পর স্ট্যাটাস approved হবে
           updatedAt: new Date(),
         },
         $push: { history: historyEntry }
@@ -212,6 +215,11 @@ const sendToCourier = async (req, res) => {
     res.json({
       success: true,
       message: `Order sent to ${provider} courier successfully`,
+      courierInfo: {
+        provider,
+        trackingId,
+        trackingUrl,
+      }
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -237,7 +245,6 @@ const updateTracking = async (req, res) => {
       updatedAt: new Date(),
     };
     
-    // ইতিহাসে যোগ
     const historyEntry = {
       status: order.orderStatus,
       note: `Tracking info updated. ID: ${trackingId}`,
@@ -274,7 +281,6 @@ const getOrderStats = async (req, res) => {
     const cancelledOrders = await db.collection('orders').countDocuments({ orderStatus: 'cancelled' });
     const totalOrders = await db.collection('orders').countDocuments();
     
-    // টোটাল রেভিনিউ
     const revenueAgg = await db.collection('orders').aggregate([
       { $match: { paymentStatus: 'paid', orderStatus: 'delivered' } },
       { $group: { _id: null, total: { $sum: '$totalPrice' } } }
@@ -299,7 +305,6 @@ const getOrderStats = async (req, res) => {
 };
 
 // @desc    Search orders by orderId or phone
-// @route   GET /api/orders/search?q=:query
 const searchOrders = async (req, res) => {
   try {
     const db = getDB();
@@ -314,9 +319,7 @@ const searchOrders = async (req, res) => {
     
     let query = {};
     
-    // চেক করো কোয়েরি টা অর্ডার আইডি নাকি ফোন নাম্বার
     if (q.startsWith('ORD-')) {
-      // অর্ডার আইডি দিয়ে খোঁজা
       query = { orderId: q };
       const order = await db.collection('orders').findOne(query);
       
@@ -334,7 +337,6 @@ const searchOrders = async (req, res) => {
       });
       
     } else {
-      // ফোন নাম্বার দিয়ে খোঁজা (একাধিক অর্ডার আসতে পারে)
       const phoneRegex = new RegExp(q, 'i');
       query = { 'customerInfo.phone': phoneRegex };
       
@@ -362,8 +364,8 @@ const searchOrders = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 // @desc    Get order by orderId (public)
-// @route   GET /api/orders/track/:orderId
 const getOrderByOrderId = async (req, res) => {
   try {
     const db = getDB();
@@ -387,6 +389,43 @@ const getOrderByOrderId = async (req, res) => {
   }
 };
 
+// @desc    Update customer info (Admin only)
+const updateCustomerInfo = async (req, res) => {
+  try {
+    const db = getDB();
+    const { id } = req.params;
+    const { customerInfo } = req.body;
+    const user = req.user;
+
+    const result = await db.collection('orders').updateOne(
+      { _id: new ObjectId(id) },
+      { 
+        $set: { 
+          customerInfo,
+          updatedAt: new Date()
+        },
+        $push: {
+          history: {
+            status: 'info_updated',
+            note: `Customer information updated by ${user.name}`,
+            changedBy: user._id,
+            changedByName: user.name,
+            timestamp: new Date()
+          }
+        }
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    res.json({ success: true, message: 'Customer info updated' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createOrder,
   getOrders,
@@ -396,5 +435,6 @@ module.exports = {
   updateTracking,
   getOrderStats,
   searchOrders,
-  getOrderByOrderId
+  getOrderByOrderId,
+  updateCustomerInfo
 };

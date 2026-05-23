@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { 
   FaEye, FaTruck, FaCheckCircle, FaTimesCircle, 
-  FaSpinner, FaShippingFast, FaExternalLinkAlt,
-  FaChevronDown, FaChevronUp, FaHistory, FaInfoCircle
+  FaSpinner, FaExternalLinkAlt, FaChevronDown, FaChevronUp, 
+  FaHistory, FaInfoCircle, FaUserEdit, FaSave, FaTimes
 } from 'react-icons/fa';
+import { adminApi } from '../../api/admin';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -14,9 +14,8 @@ const Orders = () => {
   const [filter, setFilter] = useState('all');
   const [updatingStatus, setUpdatingStatus] = useState(null);
   const [sendingCourier, setSendingCourier] = useState(null);
-
-  const token = localStorage.getItem('token');
-  const config = { headers: { Authorization: `Bearer ${token}` } };
+  const [editingUser, setEditingUser] = useState(null);
+  const [editFormData, setEditFormData] = useState({});
 
   useEffect(() => {
     fetchOrders();
@@ -24,7 +23,7 @@ const Orders = () => {
 
   const fetchOrders = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/orders', config);
+      const res = await adminApi.getOrders();
       setOrders(res.data.orders || []);
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -36,8 +35,13 @@ const Orders = () => {
   const updateOrderStatus = async (id, status) => {
     setUpdatingStatus(id);
     try {
-      await axios.put(`http://localhost:5000/api/orders/${id}/status`, { status }, config);
-      fetchOrders();
+      await adminApi.updateOrderStatus(id, status);
+      await fetchOrders();
+      // মোডাল খোলা থাকলে সিলেক্টেড অর্ডার আপডেট করো
+      if (selectedOrder && selectedOrder._id === id) {
+        const updatedOrder = orders.find(o => o._id === id);
+        if (updatedOrder) setSelectedOrder(updatedOrder);
+      }
     } catch (error) {
       console.error('Error updating order:', error);
     } finally {
@@ -48,19 +52,37 @@ const Orders = () => {
   const sendToCourier = async (id, provider) => {
     setSendingCourier(id);
     try {
-      // এখানে কুরিয়ার এপিআই কল হবে
-      const trackingId = `${provider.toUpperCase()}-${Date.now()}`;
-      const trackingUrl = `https://${provider}.com/track/${trackingId}`;
-      
-      await axios.post(`http://localhost:5000/api/orders/${id}/courier`, 
-        { provider, trackingId, trackingUrl }, 
-        config
-      );
-      fetchOrders();
+      const res = await adminApi.sendToCourier(id, provider);
+      await fetchOrders();
+      // মোডাল খোলা থাকলে সিলেক্টেড অর্ডার আপডেট করো
+      if (selectedOrder && selectedOrder._id === id) {
+        const updatedOrder = orders.find(o => o._id === id);
+        if (updatedOrder) setSelectedOrder(updatedOrder);
+      }
     } catch (error) {
       console.error('Error sending to courier:', error);
     } finally {
       setSendingCourier(null);
+    }
+  };
+
+  const updateUserInfo = async (orderId, updatedInfo) => {
+    try {
+      const res = await adminApi.updateCustomerInfo(orderId, updatedInfo);
+      if (res.data.success) {
+        await fetchOrders();
+        // মোডালে সিলেক্টেড অর্ডার আপডেট করো
+        const updatedOrder = orders.find(o => o._id === orderId);
+        if (updatedOrder) {
+          setSelectedOrder({
+            ...updatedOrder,
+            customerInfo: updatedInfo
+          });
+        }
+        setEditingUser(null);
+      }
+    } catch (error) {
+      console.error('Error updating user info:', error);
     }
   };
 
@@ -118,69 +140,6 @@ const Orders = () => {
             </button>
           ))}
         </div>
-      </div>
-
-      {/* অর্ডার কার্ড (মোবাইল) ও টেবিল (ডেস্কটপ) */}
-      <div className="block md:hidden space-y-4">
-        {filteredOrders.map((order) => (
-          <div key={order._id} className="bg-white rounded-lg shadow-md p-4">
-            <div className="flex justify-between items-start mb-3">
-              <div>
-                <p className="font-bold text-gray-800">{order.orderId}</p>
-                <p className="text-sm text-gray-500">{order.customerInfo?.name}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                {getStatusIcon(order.orderStatus)}
-                <span className={`px-2 py-1 text-xs rounded-full ${getStatusBadge(order.orderStatus)}`}>
-                  {order.orderStatus}
-                </span>
-              </div>
-            </div>
-            
-            <div className="text-sm space-y-1 mb-3">
-              <p><span className="text-gray-500">Product:</span> {order.productTitle}</p>
-              <p><span className="text-gray-500">Total:</span> ৳{order.totalPrice}</p>
-              <p><span className="text-gray-500">Phone:</span> {order.customerInfo?.phone}</p>
-            </div>
-            
-            <div className="flex gap-2">
-              <button
-                onClick={() => setSelectedOrder(order)}
-                className="flex-1 bg-rose-500 text-white px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2"
-              >
-                <FaEye /> View
-              </button>
-              <button
-                onClick={() => setExpandedOrder(expandedOrder === order._id ? null : order._id)}
-                className="bg-gray-200 px-3 py-2 rounded-lg text-sm"
-              >
-                {expandedOrder === order._id ? <FaChevronUp /> : <FaChevronDown />}
-              </button>
-            </div>
-            
-            {/* এক্সপান্ডেড ডিটেইলস */}
-            {expandedOrder === order._id && (
-              <div className="mt-4 pt-3 border-t space-y-3">
-                <div>
-                  <p className="font-semibold text-sm">Customer Info</p>
-                  <p className="text-sm">Address: {order.customerInfo?.address}</p>
-                  <p className="text-sm">Area: {order.customerInfo?.deliveryArea === 'inside_dhaka' ? 'Inside Dhaka' : 'Outside Dhaka'}</p>
-                </div>
-                <div>
-                  <p className="font-semibold text-sm">IP Address</p>
-                  <p className="text-sm">{order.ipAddress || 'N/A'}</p>
-                </div>
-                {order.courierInfo?.provider && (
-                  <div>
-                    <p className="font-semibold text-sm">Courier Info</p>
-                    <p className="text-sm">Provider: {order.courierInfo.provider}</p>
-                    <p className="text-sm">Tracking: {order.courierInfo.trackingId}</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        ))}
       </div>
 
       {/* ডেস্কটপ টেবিল */}
@@ -249,8 +208,13 @@ const Orders = () => {
                           Pathao
                         </button>
                       </div>
-                      {order.courierInfo?.trackingId && (
-                        <a href={order.courierInfo.trackingUrl} target="_blank" className="text-xs text-blue-500 flex items-center gap-1 mt-1">
+                      {order.courierInfo?.trackingUrl && (
+                        <a 
+                          href={order.courierInfo.trackingUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-500 flex items-center gap-1 mt-1 hover:underline"
+                        >
                           Track <FaExternalLinkAlt size={10} />
                         </a>
                       )}
@@ -271,6 +235,72 @@ const Orders = () => {
         </div>
       </div>
 
+      {/* মোবাইল ভিউ - কার্ড */}
+      <div className="block md:hidden space-y-4">
+        {filteredOrders.map((order) => (
+          <div key={order._id} className="bg-white rounded-lg shadow-md p-4">
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <p className="font-bold text-gray-800">{order.orderId}</p>
+                <p className="text-sm text-gray-500">{order.customerInfo?.name}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                {getStatusIcon(order.orderStatus)}
+                <span className={`px-2 py-1 text-xs rounded-full ${getStatusBadge(order.orderStatus)}`}>
+                  {order.orderStatus}
+                </span>
+              </div>
+            </div>
+            
+            <div className="text-sm space-y-1 mb-3">
+              <p><span className="text-gray-500">Product:</span> {order.productTitle}</p>
+              <p><span className="text-gray-500">Total:</span> ৳{order.totalPrice}</p>
+              <p><span className="text-gray-500">Phone:</span> {order.customerInfo?.phone}</p>
+            </div>
+            
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSelectedOrder(order)}
+                className="flex-1 bg-rose-500 text-white px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2"
+              >
+                <FaEye /> View
+              </button>
+              <button
+                onClick={() => setExpandedOrder(expandedOrder === order._id ? null : order._id)}
+                className="bg-gray-200 px-3 py-2 rounded-lg text-sm"
+              >
+                {expandedOrder === order._id ? <FaChevronUp /> : <FaChevronDown />}
+              </button>
+            </div>
+            
+            {expandedOrder === order._id && (
+              <div className="mt-4 pt-3 border-t space-y-3">
+                <div>
+                  <p className="font-semibold text-sm">Customer Info</p>
+                  <p className="text-sm">Address: {order.customerInfo?.address}</p>
+                  <p className="text-sm">Area: {order.customerInfo?.deliveryArea === 'inside_dhaka' ? 'Inside Dhaka' : 'Outside Dhaka'}</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">IP Address</p>
+                  <p className="text-sm">{order.ipAddress || 'N/A'}</p>
+                </div>
+                {order.courierInfo?.provider && (
+                  <div>
+                    <p className="font-semibold text-sm">Courier Info</p>
+                    <p className="text-sm">Provider: {order.courierInfo.provider}</p>
+                    {order.courierInfo.trackingUrl && (
+                      <p className="text-sm">
+                        Tracking: <a href={order.courierInfo.trackingUrl} target="_blank" className="text-blue-500">Click to track</a>
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
       {/* খালি স্টেট */}
       {filteredOrders.length === 0 && (
         <div className="text-center py-12 bg-white rounded-lg shadow-md">
@@ -285,15 +315,77 @@ const Orders = () => {
           onClose={() => setSelectedOrder(null)} 
           updateOrderStatus={updateOrderStatus}
           sendToCourier={sendToCourier}
+          updateUserInfo={updateUserInfo}
+          editingUser={editingUser}
+          setEditingUser={setEditingUser}
+          editFormData={editFormData}
+          setEditFormData={setEditFormData}
         />
       )}
     </div>
   );
 };
 
-// অর্ডার ডিটেইলস মোডাল কম্পোনেন্ট
-const OrderDetailsModal = ({ order, onClose, updateOrderStatus, sendToCourier }) => {
+// Order Details Modal Component
+const OrderDetailsModal = ({ 
+  order, onClose, updateOrderStatus, sendToCourier,
+  updateUserInfo, editingUser, setEditingUser, editFormData, setEditFormData
+}) => {
   const [activeTab, setActiveTab] = useState('details');
+  const [localOrder, setLocalOrder] = useState(order);
+
+  // order প্রপস পরিবর্তন হলে লোকাল স্টেট আপডেট
+  useEffect(() => {
+    setLocalOrder(order);
+  }, [order]);
+
+  const startEditing = () => {
+    setEditingUser(order._id);
+    setEditFormData({
+      name: localOrder.customerInfo?.name || '',
+      phone: localOrder.customerInfo?.phone || '',
+      address: localOrder.customerInfo?.address || '',
+      deliveryArea: localOrder.customerInfo?.deliveryArea || 'inside_dhaka',
+      note: localOrder.customerInfo?.note || ''
+    });
+  };
+
+  const handleEditChange = (e) => {
+    setEditFormData({ ...editFormData, [e.target.name]: e.target.value });
+  };
+
+  const saveUserInfo = async () => {
+    await updateUserInfo(order._id, editFormData);
+    // লোকাল অর্ডার আপডেট করো
+    setLocalOrder({
+      ...localOrder,
+      customerInfo: editFormData
+    });
+  };
+
+  const handleUpdateStatus = async (status) => {
+    await updateOrderStatus(order._id, status);
+    setLocalOrder({
+      ...localOrder,
+      orderStatus: status
+    });
+    onClose();
+  };
+
+  const handleSendToCourier = async (provider) => {
+    await sendToCourier(order._id, provider);
+    const updatedOrder = { ...localOrder };
+    updatedOrder.courierInfo = {
+      ...updatedOrder.courierInfo,
+      provider: provider,
+      trackingId: `${provider.toUpperCase()}-${Date.now()}`,
+      trackingUrl: `https://${provider}.com/track/${provider.toUpperCase()}-${Date.now()}`,
+      sentAt: new Date().toISOString(),
+      sentByName: JSON.parse(localStorage.getItem('user') || '{}').name
+    };
+    setLocalOrder(updatedOrder);
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -327,100 +419,203 @@ const OrderDetailsModal = ({ order, onClose, updateOrderStatus, sendToCourier })
             <div className="space-y-6">
               {/* অর্ডার তথ্য */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><p className="text-sm text-gray-500">Order ID</p><p className="font-semibold">{order.orderId}</p></div>
-                <div><p className="text-sm text-gray-500">Date</p><p className="font-semibold">{new Date(order.createdAt).toLocaleString()}</p></div>
-                <div><p className="text-sm text-gray-500">Payment Method</p><p className="font-semibold capitalize">{order.paymentMethod}</p></div>
-                <div><p className="text-sm text-gray-500">Payment Status</p><p className={`font-semibold capitalize ${order.paymentStatus === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>{order.paymentStatus}</p></div>
-                <div><p className="text-sm text-gray-500">IP Address</p><p className="font-semibold">{order.ipAddress || 'N/A'}</p></div>
-                <div><p className="text-sm text-gray-500">User Agent</p><p className="text-xs text-gray-500 break-all">{order.userAgent || 'N/A'}</p></div>
+                <div><p className="text-sm text-gray-500">Order ID</p><p className="font-semibold">{localOrder.orderId}</p></div>
+                <div><p className="text-sm text-gray-500">Date</p><p className="font-semibold">{new Date(localOrder.createdAt).toLocaleString()}</p></div>
+                <div><p className="text-sm text-gray-500">Payment Method</p><p className="font-semibold capitalize">{localOrder.paymentMethod}</p></div>
+                <div><p className="text-sm text-gray-500">Payment Status</p><p className={`font-semibold capitalize ${localOrder.paymentStatus === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>{localOrder.paymentStatus}</p></div>
+                <div><p className="text-sm text-gray-500">IP Address</p><p className="font-semibold">{localOrder.ipAddress || 'N/A'}</p></div>
+                <div><p className="text-sm text-gray-500">User Agent</p><p className="text-xs text-gray-500 break-all">{localOrder.userAgent || 'N/A'}</p></div>
               </div>
 
-              {/* গ্রাহক তথ্য */}
-              <div className="border-t pt-4">
-                <h3 className="font-semibold text-gray-800 mb-3">Customer Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  <p><span className="text-gray-500">Name:</span> {order.customerInfo?.name}</p>
-                  <p><span className="text-gray-500">Phone:</span> {order.customerInfo?.phone}</p>
-                  <p className="md:col-span-2"><span className="text-gray-500">Address:</span> {order.customerInfo?.address}</p>
-                  <p><span className="text-gray-500">Delivery Area:</span> {order.customerInfo?.deliveryArea === 'inside_dhaka' ? 'Inside Dhaka' : 'Outside Dhaka'}</p>
-                  <p><span className="text-gray-500">Delivery Charge:</span> ৳{order.deliveryCharge}</p>
-                  {order.customerInfo?.note && <p className="md:col-span-2"><span className="text-gray-500">Note:</span> {order.customerInfo.note}</p>}
+              {/* গ্রাহক তথ্য - এডিট অপশন সহ */}
+              <div className="border rounded-lg overflow-hidden">
+                <div className="bg-gray-50 px-5 py-3 flex justify-between items-center">
+                  <h3 className="font-semibold text-gray-800">Customer Information</h3>
+                  {editingUser !== order._id ? (
+                    <button
+                      onClick={startEditing}
+                      className="text-rose-500 hover:text-rose-600 text-sm flex items-center gap-1"
+                    >
+                      <FaUserEdit size={14} /> Edit
+                    </button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={saveUserInfo}
+                        className="text-green-500 hover:text-green-600 text-sm flex items-center gap-1"
+                      >
+                        <FaSave size={14} /> Save
+                      </button>
+                      <button
+                        onClick={() => setEditingUser(null)}
+                        className="text-red-500 hover:text-red-600 text-sm flex items-center gap-1"
+                      >
+                        <FaTimes size={14} /> Cancel
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <div className="p-5">
+                  {editingUser === order._id ? (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-xs text-gray-500">Name</label>
+                        <input
+                          type="text"
+                          name="name"
+                          value={editFormData.name}
+                          onChange={handleEditChange}
+                          className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500">Phone</label>
+                        <input
+                          type="text"
+                          name="phone"
+                          value={editFormData.phone}
+                          onChange={handleEditChange}
+                          className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500">Address</label>
+                        <textarea
+                          name="address"
+                          value={editFormData.address}
+                          onChange={handleEditChange}
+                          rows="2"
+                          className="w-full mt-1 px-3 py-2 border rounded-lg text-sm resize-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500">Delivery Area</label>
+                        <select
+                          name="deliveryArea"
+                          value={editFormData.deliveryArea}
+                          onChange={handleEditChange}
+                          className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                        >
+                          <option value="inside_dhaka">Inside Dhaka</option>
+                          <option value="outside_dhaka">Outside Dhaka</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500">Note</label>
+                        <textarea
+                          name="note"
+                          value={editFormData.note}
+                          onChange={handleEditChange}
+                          rows="2"
+                          className="w-full mt-1 px-3 py-2 border rounded-lg text-sm resize-none"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <p><span className="text-xs text-gray-500">Name:</span> <span className="font-medium">{localOrder.customerInfo?.name}</span></p>
+                      <p><span className="text-xs text-gray-500">Phone:</span> <span className="font-medium">{localOrder.customerInfo?.phone}</span></p>
+                      <p className="md:col-span-2"><span className="text-xs text-gray-500">Address:</span> <span className="font-medium">{localOrder.customerInfo?.address}</span></p>
+                      <p><span className="text-xs text-gray-500">Delivery Area:</span> <span className="font-medium">{localOrder.customerInfo?.deliveryArea === 'inside_dhaka' ? 'Inside Dhaka' : 'Outside Dhaka'}</span></p>
+                      <p><span className="text-xs text-gray-500">Delivery Charge:</span> <span className="font-medium">৳{localOrder.deliveryCharge}</span></p>
+                      {localOrder.customerInfo?.note && <p className="md:col-span-2"><span className="text-xs text-gray-500">Note:</span> <span className="font-medium">{localOrder.customerInfo.note}</span></p>}
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* অর্ডার সামারি */}
-              <div className="border-t pt-4">
-                <h3 className="font-semibold text-gray-800 mb-3">Order Summary</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between"><span className="text-gray-500">Product:</span> <span>{order.productTitle}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-500">Product Price:</span> <span>৳{order.productPrice}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-500">Delivery Charge:</span> <span>৳{order.deliveryCharge}</span></div>
-                  <div className="flex justify-between border-t pt-2 mt-2"><span className="font-bold">Total:</span> <span className="font-bold text-rose-600">৳{order.totalPrice}</span></div>
+              <div className="border rounded-lg overflow-hidden">
+                <div className="bg-gray-50 px-5 py-3">
+                  <h3 className="font-semibold text-gray-800">Order Summary</h3>
+                </div>
+                <div className="p-5 space-y-2">
+                  <div className="flex justify-between"><span className="text-gray-500">Product:</span> <span>{localOrder.productTitle}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500">Product Price:</span> <span>৳{localOrder.productPrice}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500">Delivery Charge:</span> <span>৳{localOrder.deliveryCharge}</span></div>
+                  <div className="flex justify-between border-t pt-2 mt-2"><span className="font-bold">Total:</span> <span className="font-bold text-rose-600">৳{localOrder.totalPrice}</span></div>
                 </div>
               </div>
 
               {/* কুরিয়ার তথ্য */}
-              {order.courierInfo?.provider && (
-                <div className="border-t pt-4">
-                  <h3 className="font-semibold text-gray-800 mb-3">Courier Information</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <p><span className="text-gray-500">Provider:</span> <span className="capitalize">{order.courierInfo.provider}</span></p>
-                    <p><span className="text-gray-500">Tracking ID:</span> {order.courierInfo.trackingId}</p>
-                    <p className="md:col-span-2"><span className="text-gray-500">Tracking URL:</span> <a href={order.courierInfo.trackingUrl} target="_blank" className="text-blue-500">Click to track</a></p>
-                    <p><span className="text-gray-500">Sent At:</span> {new Date(order.courierInfo.sentAt).toLocaleString()}</p>
-                    <p><span className="text-gray-500">Sent By:</span> {order.courierInfo.sentByName}</p>
+              {localOrder.courierInfo?.provider && (
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="bg-gray-50 px-5 py-3">
+                    <h3 className="font-semibold text-gray-800">Courier Information</h3>
+                  </div>
+                  <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <p><span className="text-xs text-gray-500">Provider:</span> <span className="capitalize">{localOrder.courierInfo.provider}</span></p>
+                    <p><span className="text-xs text-gray-500">Tracking ID:</span> {localOrder.courierInfo.trackingId}</p>
+                    <p className="md:col-span-2">
+                      <span className="text-xs text-gray-500">Tracking URL:</span>{" "}
+                      <a 
+                        href={localOrder.courierInfo.trackingUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline"
+                      >
+                        {localOrder.courierInfo.trackingUrl}
+                      </a>
+                    </p>
+                    <p><span className="text-xs text-gray-500">Sent At:</span> {new Date(localOrder.courierInfo.sentAt).toLocaleString()}</p>
+                    <p><span className="text-xs text-gray-500">Sent By:</span> {localOrder.courierInfo.sentByName}</p>
                   </div>
                 </div>
               )}
 
               {/* স্ট্যাটাস আপডেট */}
-              <div className="border-t pt-4">
-                <h3 className="font-semibold text-gray-800 mb-3">Update Status</h3>
-                <div className="flex flex-wrap gap-2">
-                  {['pending', 'approved', 'delivered', 'cancelled'].map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => {
-                        updateOrderStatus(order._id, status);
-                        onClose();
-                      }}
-                      className={`px-3 py-1 rounded-lg text-sm capitalize transition ${
-                        order.orderStatus === status
-                          ? 'bg-rose-500 text-white'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                      }`}
-                    >
-                      {status}
-                    </button>
-                  ))}
+              <div className="border rounded-lg overflow-hidden">
+                <div className="bg-gray-50 px-5 py-3">
+                  <h3 className="font-semibold text-gray-800">Update Status</h3>
+                </div>
+                <div className="p-5">
+                  <div className="flex flex-wrap gap-2">
+                    {['pending', 'approved', 'delivered', 'cancelled'].map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => handleUpdateStatus(status)}
+                        className={`px-3 py-1 rounded-lg text-sm capitalize transition ${
+                          localOrder.orderStatus === status
+                            ? 'bg-rose-500 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
               {/* কুরিয়ার বাটন */}
-              <div className="border-t pt-4">
-                <h3 className="font-semibold text-gray-800 mb-3">Send to Courier</h3>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => sendToCourier(order._id, 'steadfast')}
-                    disabled={order.courierInfo?.provider === 'steadfast'}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm disabled:opacity-50"
-                  >
-                    Steadfast
-                  </button>
-                  <button
-                    onClick={() => sendToCourier(order._id, 'pathao')}
-                    disabled={order.courierInfo?.provider === 'pathao'}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm disabled:opacity-50"
-                  >
-                    Pathao
-                  </button>
+              <div className="border rounded-lg overflow-hidden">
+                <div className="bg-gray-50 px-5 py-3">
+                  <h3 className="font-semibold text-gray-800">Send to Courier</h3>
+                </div>
+                <div className="p-5">
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => handleSendToCourier('steadfast')}
+                      disabled={localOrder.courierInfo?.provider === 'steadfast'}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm disabled:opacity-50"
+                    >
+                      Steadfast
+                    </button>
+                    <button
+                      onClick={() => handleSendToCourier('pathao')}
+                      disabled={localOrder.courierInfo?.provider === 'pathao'}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm disabled:opacity-50"
+                    >
+                      Pathao
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           ) : (
             // ইতিহাস ট্যাব
             <div className="space-y-4">
-              {order.history?.map((item, index) => (
+              {localOrder.history?.map((item, index) => (
                 <div key={index} className="border-l-4 border-rose-500 pl-4 py-2">
                   <div className="flex items-center gap-2 mb-1">
                     <span className={`px-2 py-0.5 text-xs rounded-full ${getStatusBadge(item.status)}`}>
@@ -434,7 +629,7 @@ const OrderDetailsModal = ({ order, onClose, updateOrderStatus, sendToCourier })
                   )}
                 </div>
               ))}
-              {(!order.history || order.history.length === 0) && (
+              {(!localOrder.history || localOrder.history.length === 0) && (
                 <p className="text-gray-500 text-center py-4">No history available</p>
               )}
             </div>
