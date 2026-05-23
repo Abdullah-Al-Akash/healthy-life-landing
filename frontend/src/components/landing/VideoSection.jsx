@@ -2,9 +2,32 @@ import { useState } from "react";
 import { FiPlay, FiX, FiShoppingCart } from "react-icons/fi";
 import CheckoutDrawer from "./CheckoutDrawer";
 
-const VideoSection = ({ video = null }) => {
+const VideoSection = ({ 
+  video = null, 
+  heading = {}, 
+  buttonText = "এখনই অর্ডার করুন",
+  stats = {} 
+}) => {
   const [showModal, setShowModal] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  // ডিফল্ট হেডিং
+  const defaultHeading = {
+    badge: "ভিডিও টিউটোরিয়াল",
+    title: "পণ্য সম্পর্কে বিস্তারিত জানুন",
+    highlightText: "বিস্তারিত জানুন",
+    subtitle: "আমাদের পণ্য如何使用, এর উপকারিতা এবং ব্যবহার পদ্ধতি সম্পর্কে ভিডিওতে দেখুন"
+  };
+
+  // ডিফল্ট স্ট্যাটাস
+  const defaultStats = {
+    duration: "২:৩০ মিনিট",
+    views: "১০K+ ভিউ",
+    likes: "৯৫% পছন্দ করেছেন"
+  };
+
+  const { badge, title, highlightText, subtitle } = heading || defaultHeading;
+  const { duration, views, likes } = stats || defaultStats;
 
   // ডিফল্ট ভিডিও ডাটা (যদি API থেকে না আসে)
   const defaultVideo = {
@@ -25,22 +48,38 @@ const VideoSection = ({ video = null }) => {
     image: "https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=1200",
   };
 
+  // হাইলাইট টেক্সট সহ টাইটেল রেন্ডার
+  const renderTitle = () => {
+    if (!highlightText) {
+      return <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">{title}</h2>;
+    }
+    
+    const parts = title.split(highlightText);
+    return (
+      <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+        {parts[0]}
+        <span className="text-rose-500">{highlightText}</span>
+        {parts[1]}
+      </h2>
+    );
+  };
+
   return (
     <>
       <section className="section bg-gradient-to-br from-gray-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          {/* সেকশন হেডার */}
+          {/* সেকশন হেডার - ডাইনামিক */}
           <div className="text-center mb-12 md:mb-16">
-            <span className="inline-block px-3 py-1 bg-rose-100 text-rose-600 rounded-full text-sm font-semibold mb-4">
-              ভিডিও টিউটোরিয়াল
-            </span>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              পণ্য সম্পর্কে <span className="text-rose-500">বিস্তারিত জানুন</span>
-            </h2>
+            {badge && (
+              <span className="inline-block px-3 py-1 bg-rose-100 text-rose-600 rounded-full text-sm font-semibold mb-4">
+                {badge}
+              </span>
+            )}
+            {renderTitle()}
             <div className="w-24 h-1 bg-rose-500 mx-auto mb-6 rounded-full"></div>
             <p className="text-gray-600 text-base md:text-lg max-w-2xl mx-auto">
-              আমাদের পণ্য如何使用, এর উপকারিতা এবং ব্যবহার পদ্ধতি সম্পর্কে ভিডিওতে দেখুন
+              {subtitle}
             </p>
           </div>
 
@@ -76,23 +115,29 @@ const VideoSection = ({ video = null }) => {
             {/* ভিডিওর নিচের তথ্য */}
             <div className="mt-8 text-center">
               <p className="text-gray-600 text-sm md:text-base">
-                ভিডিওটি দেখে জানুন কিভাবে আমাদের পণ্য ব্যবহার করবেন এবং এর উপকারিতা সম্পর্কে
+                {subtitle || defaultHeading.subtitle}
               </p>
               
-              {/* ভিউ ও স্ট্যাটাস */}
+              {/* ভিউ ও স্ট্যাটাস - ডাইনামিক */}
               <div className="flex flex-wrap justify-center gap-4 mt-4 mb-8">
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <span>⏱️ ২:৩০ মিনিট</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <span>👁️ ১০K+ ভিউ</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <span>👍 ৯৫% পছন্দ করেছেন</span>
-                </div>
+                {duration && (
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <span>⏱️ {duration}</span>
+                  </div>
+                )}
+                {views && (
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <span>👁️ {views}</span>
+                  </div>
+                )}
+                {likes && (
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <span>👍 {likes}</span>
+                  </div>
+                )}
               </div>
 
-              {/* নাচুয়ে অর্ডার বাটন */}
+              {/* নাচুয়ে অর্ডার বাটন - ডাইনামিক টেক্সট */}
               <button
                 onClick={() => setIsDrawerOpen(true)}
                 className="bg-gradient-to-r from-rose-500 to-pink-500 text-white px-6 md:px-8 py-2.5 md:py-3 rounded-full font-bold text-sm md:text-base shadow-lg hover:shadow-rose-500/50 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-2 mx-auto"
@@ -101,7 +146,7 @@ const VideoSection = ({ video = null }) => {
                 }}
               >
                 <FiShoppingCart className="text-base md:text-lg" />
-                <span>এখনই অর্ডার করুন - ৳{product.offerPrice}</span>
+                <span>{buttonText} - ৳{product.offerPrice}</span>
                 <svg className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
@@ -116,15 +161,11 @@ const VideoSection = ({ video = null }) => {
             className="fixed inset-0 z-[9998] flex items-center justify-center p-4"
             onClick={() => setShowModal(false)}
           >
-            {/* ব্যাকড্রপ */}
             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-
-            {/* মোডাল কনটেন্ট */}
             <div
               className="relative bg-white rounded-2xl max-w-4xl w-full overflow-hidden animate-scaleIn"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* হেডার */}
               <div className="flex justify-between items-center p-4 border-b">
                 <h3 className="font-semibold text-gray-800">
                   {currentVideo.title}
@@ -136,8 +177,6 @@ const VideoSection = ({ video = null }) => {
                   <FiX size={20} />
                 </button>
               </div>
-
-              {/* ভিডিও ফ্রেম */}
               <div className="aspect-video">
                 <iframe
                   className="w-full h-full"
@@ -153,38 +192,22 @@ const VideoSection = ({ video = null }) => {
         )}
       </section>
 
-      {/* চেকআউট ড্রয়ার */}
       <CheckoutDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         product={product}
       />
 
-      {/* অ্যানিমেশন স্টাইল */}
       <style>{`
         @keyframes wiggle {
-          0%, 100% {
-            transform: translateY(0) scale(1);
-          }
-          50% {
-            transform: translateY(-5px) scale(1.02);
-          }
+          0%, 100% { transform: translateY(0) scale(1); }
+          50% { transform: translateY(-5px) scale(1.02); }
         }
-        
         @keyframes scaleIn {
-          from {
-            opacity: 0;
-            transform: scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
         }
-        
-        .animate-scaleIn {
-          animation: scaleIn 0.2s ease-out;
-        }
+        .animate-scaleIn { animation: scaleIn 0.2s ease-out; }
       `}</style>
     </>
   );

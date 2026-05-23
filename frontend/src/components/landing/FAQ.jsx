@@ -1,13 +1,37 @@
 import { useState } from "react";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { FaFacebook, FaWhatsapp, FaPhoneAlt } from "react-icons/fa";
-import { useState as useStateHook } from "react";
 import CheckoutDrawer from "./CheckoutDrawer";
 
-const FAQ = ({ faqs = [], contactInfo = {} }) => {
+const FAQ = ({ 
+  faqs = [], 
+  contactInfo = {}, 
+  heading = {}, 
+  contactHeading = {},
+  buttonText = "এখনই অর্ডার করুন",
+  productInfo = {},
+  supportHours = "সকাল ৯টা - রাত ১০টা (শুক্রবার বন্ধ)"
+}) => {
   const [openIndex, setOpenIndex] = useState(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useStateHook(false);
-  const [selectedProduct, setSelectedProduct] = useStateHook(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
+  // ডিফল্ট হেডিং
+  const defaultHeading = {
+    title: "প্রায়শই জিজ্ঞাসিত প্রশ্ন",
+    highlightText: "প্রশ্ন",
+    subtitle: "আপনার মনে হতে পারে এমন কিছু সাধারণ প্রশ্নের উত্তর জেনে নিন"
+  };
+
+  // ডিফল্ট কন্টাক্ট হেডিং
+  const defaultContactHeading = {
+    title: "এখনও প্রশ্ন আছে?",
+    subtitle: "আমাদের সাথে সরাসরি যোগাযোগ করুন। আমরা ২৪/৭ ঘন্টা আপনার পাশে আছি।",
+    hotlineLabel: "হটলাইন:"
+  };
+
+  const { title, highlightText, subtitle } = heading || defaultHeading;
+  const { title: contactTitle, subtitle: contactSubtitle, hotlineLabel } = contactHeading || defaultContactHeading;
 
   // ডিফল্ট FAQ (যদি API থেকে না আসে)
   const defaultFaqs = [
@@ -57,12 +81,28 @@ const FAQ = ({ faqs = [], contactInfo = {} }) => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
+  // হাইলাইট টেক্সট সহ টাইটেল রেন্ডার
+  const renderTitle = () => {
+    if (!highlightText) {
+      return <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">{title}</h2>;
+    }
+    
+    const parts = title.split(highlightText);
+    return (
+      <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+        {parts[0]}
+        <span className="text-rose-500">{highlightText}</span>
+        {parts[1]}
+      </h2>
+    );
+  };
+
   const handleOrderClick = () => {
     setSelectedProduct({
-      id: "faq-product",
-      title: "সেরা হারবাল পণ্য",
-      offerPrice: "২৯৯",
-      image: "https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=1200",
+      id: productInfo.id || "faq-product",
+      title: productInfo.title || "সেরা হারবাল পণ্য",
+      offerPrice: productInfo.offerPrice || "২৯৯",
+      image: productInfo.image || "https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=1200",
     });
     setIsDrawerOpen(true);
   };
@@ -72,25 +112,22 @@ const FAQ = ({ faqs = [], contactInfo = {} }) => {
       <section className="py-16 md:py-24 bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          {/* সেকশন টাইটেল */}
+          {/* সেকশন হেডার - ডাইনামিক */}
           <div className="text-center mb-12 md:mb-16">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              প্রায়শই জিজ্ঞাসিত <span className="text-rose-500">প্রশ্ন</span>
-            </h2>
+            {renderTitle()}
             <div className="w-24 h-1 bg-rose-500 mx-auto mb-6 rounded-full"></div>
             <p className="text-gray-600 text-base md:text-lg max-w-2xl mx-auto">
-              আপনার মনে হতে পারে এমন কিছু সাধারণ প্রশ্নের উত্তর জেনে নিন
+              {subtitle}
             </p>
           </div>
 
-          {/* FAQ লিস্ট */}
+          {/* FAQ লিস্ট - ডাইনামিক */}
           <div className="space-y-4">
             {displayFaqs.map((faq, index) => (
               <div
                 key={faq.id || index}
                 className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-md"
               >
-                {/* প্রশ্ন (হেডার) */}
                 <button
                   className="w-full px-6 py-4 md:px-8 md:py-5 text-left flex justify-between items-center hover:bg-gray-50 transition-colors duration-200"
                   onClick={() => toggleFAQ(index)}
@@ -103,7 +140,6 @@ const FAQ = ({ faqs = [], contactInfo = {} }) => {
                   </span>
                 </button>
 
-                {/* উত্তর (কন্টেন্ট) */}
                 <div
                   className={`transition-all duration-300 ease-in-out ${
                     openIndex === index ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
@@ -121,14 +157,14 @@ const FAQ = ({ faqs = [], contactInfo = {} }) => {
             ))}
           </div>
 
-          {/* যোগাযোগ সেকশন */}
+          {/* যোগাযোগ সেকশন - ডাইনামিক */}
           <div className="mt-12 bg-gradient-to-r from-rose-50 to-pink-50 rounded-2xl p-6 md:p-10">
             <div className="text-center mb-6">
               <h3 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">
-                এখনও প্রশ্ন আছে?
+                {contactTitle}
               </h3>
               <p className="text-gray-600">
-                আমাদের সাথে সরাসরি যোগাযোগ করুন। আমরা ২৪/৭ ঘন্টা আপনার পাশে আছি।
+                {contactSubtitle}
               </p>
             </div>
 
@@ -178,23 +214,23 @@ const FAQ = ({ faqs = [], contactInfo = {} }) => {
               </a>
             </div>
 
-            {/* ফোন নাম্বার টেক্সট */}
+            {/* ফোন নাম্বার টেক্সট - ডাইনামিক */}
             <div className="text-center mt-6">
               <p className="text-gray-500 text-sm">
-                হটলাইন: <span className="font-semibold text-rose-600">{displayContactInfo.phone}</span>
+                {hotlineLabel} <span className="font-semibold text-rose-600">{displayContactInfo.phone}</span>
               </p>
               <p className="text-gray-400 text-xs mt-1">
-                সকাল ৯টা - রাত ১০টা (শুক্রবার বন্ধ)
+                {supportHours}
               </p>
             </div>
 
-            {/* অর্ডার বাটন */}
+            {/* অর্ডার বাটন - ডাইনামিক */}
             <div className="text-center mt-6">
               <button
                 onClick={handleOrderClick}
                 className="bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white px-8 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
               >
-                এখনই অর্ডার করুন
+                {buttonText}
               </button>
             </div>
           </div>

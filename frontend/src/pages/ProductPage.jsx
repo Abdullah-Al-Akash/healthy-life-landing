@@ -9,7 +9,7 @@ import Reviews from "../components/landing/Reviews";
 import { productApi } from "../api/product";
 
 const ProductPage = () => {
-  const { slug } = useParams(); // URL থেকে slug নিবে
+  const { slug } = useParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -53,12 +53,47 @@ const ProductPage = () => {
 
   return (
     <div>
-      <BannerCarousel banners={product.banners || []} />
-      <DeliveryInfo features={product.deliveryFeatures || []} />
-      <WhyChooseUs features={product.whyChooseUs || []} />
-      <VideoSection video={product.video || null} />
-      <Reviews reviews={product.reviews || []} />
-      <FAQ faqs={product.faqs || []} contactInfo={product.contactInfo || {}} />
+      <BannerCarousel 
+        banners={product.banners || []} 
+        config={product.bannerConfig || {}}
+      />
+      
+      <DeliveryInfo 
+        features={product.deliveryFeatures || []} 
+      />
+      
+      <WhyChooseUs 
+        features={product.whyChooseUs || []} 
+        stats={product.whyChooseUsStats || []}
+        heading={product.sectionHeadings?.whyChooseUs}
+        orderBanner={product.orderBanner}
+        buttonText={product.buttonText}
+      />
+      
+      <VideoSection 
+        video={product.video || null} 
+        heading={product.sectionHeadings?.video}
+        stats={product.videoStats}
+        buttonText={product.buttonText}
+      />
+      
+      <Reviews 
+        reviews={product.reviews || []} 
+        heading={product.sectionHeadings?.reviews}
+        stats={product.reviewStats}
+        buttonText={product.buttonText}
+        productInfo={product.productInfo}
+      />
+      
+      <FAQ 
+        faqs={product.faqs || []} 
+        contactInfo={product.contactInfo || {}}
+        heading={product.sectionHeadings?.faq}
+        contactHeading={product.contactHeading}
+        buttonText={product.buttonText}
+        productInfo={product.productInfo}
+        supportHours={product.supportHours}
+      />
     </div>
   );
 };

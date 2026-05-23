@@ -12,7 +12,6 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // হোমপেজে ডিফল্ট একটি প্রোডাক্ট দেখাবো
     const fetchProduct = async () => {
       try {
         const response = await productApi.getBySlug("herbal-tea");
@@ -34,14 +33,50 @@ const HomePage = () => {
     );
   }
 
+  if (!product) return null;
+
   return (
     <div>
-      <BannerCarousel banners={product?.banners || []} />
-      <DeliveryInfo features={product?.deliveryFeatures || []} />
-      <WhyChooseUs features={product?.whyChooseUs || []} />
-      <VideoSection video={product?.video || null} />
-      <Reviews reviews={product?.reviews || []} />
-      <FAQ faqs={product?.faqs || []} contactInfo={product?.contactInfo || {}} />
+      <BannerCarousel 
+        banners={product.banners || []} 
+      />
+      
+      <DeliveryInfo 
+        features={product.deliveryFeatures || []} 
+      />
+      
+      <WhyChooseUs 
+        features={product.whyChooseUs || []} 
+        stats={product.whyChooseUsStats || []}
+        heading={product.sectionHeadings?.whyChooseUs}
+        orderBanner={product.orderBanner}
+        buttonText={product.buttonText}
+      />
+      
+      <VideoSection 
+        video={product.video || null} 
+        heading={product.sectionHeadings?.video}
+        stats={product.videoStats}
+        buttonText={product.buttonText}
+      />
+      
+      <Reviews 
+        reviews={product.reviews || []} 
+        heading={product.sectionHeadings?.reviews}
+        stats={product.reviewStats}
+        buttonText={product.buttonText}
+        productInfo={product.productInfo}
+      />
+      
+      <FAQ 
+        faqs={product.faqs || []} 
+        contactInfo={product.contactInfo || {}}
+        heading={product.sectionHeadings?.faq}
+        contactHeading={product.contactHeading}
+        buttonText={product.buttonText}
+        productInfo={product.productInfo}
+        supportHours={product.supportHours}
+      />
     </div>
   );
 };

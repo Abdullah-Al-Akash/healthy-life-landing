@@ -1,56 +1,51 @@
-import { 
-  FaLeaf, 
-  FaTruck, 
-  FaShieldAlt, 
-  FaSmile, 
-  FaHeadset, 
-  FaCertificate 
-} from "react-icons/fa";
+import { FaLeaf, FaTruck, FaShieldAlt, FaSmile, FaHeadset, FaCertificate } from "react-icons/fa";
 import { useState } from "react";
 import CheckoutDrawer from "./CheckoutDrawer";
 
-const WhyChooseUs = ({ features = [], stats = [] }) => {
+// উপলব্ধ আইকন লিস্ট (ফর্মে সিলেক্ট করার জন্য)
+export const AVAILABLE_ICONS = [
+  { name: "FaLeaf", icon: <FaLeaf className="w-6 h-6 md:w-7 md:h-7" /> },
+  { name: "FaTruck", icon: <FaTruck className="w-6 h-6 md:w-7 md:h-7" /> },
+  { name: "FaShieldAlt", icon: <FaShieldAlt className="w-6 h-6 md:w-7 md:h-7" /> },
+  { name: "FaSmile", icon: <FaSmile className="w-6 h-6 md:w-7 md:h-7" /> },
+  { name: "FaHeadset", icon: <FaHeadset className="w-6 h-6 md:w-7 md:h-7" /> },
+  { name: "FaCertificate", icon: <FaCertificate className="w-6 h-6 md:w-7 md:h-7" /> },
+];
+
+const WhyChooseUs = ({ 
+  features = [], 
+  stats = [], 
+  heading = {}, 
+  orderBanner = {}, 
+  buttonText = "এখনই অর্ডার করুন" 
+}) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
+  // ডিফল্ট হেডিং
+  const defaultHeading = {
+    title: "কেন বেছে নেবেন আমাদের?",
+    highlightText: "আমাদের?",
+    subtitle: "আমরা চাই আপনাকে সেরা সেবা ও মানসম্মত পণ্য দিতে। জেনে নিন কেন আমরা সবার প্রথম পছন্দ।"
+  };
+
+  // ডিফল্ট অর্ডার ব্যানার
+  const defaultOrderBanner = {
+    title: "আজই অর্ডার করুন ও পান বিশেষ ছাড়!",
+    subtitle: "সীমিত সময়ের অফার। দেরি না করে এখনই অর্ডার করুন।"
+  };
+
+  const { title, highlightText, subtitle } = heading || defaultHeading;
+  const { title: bannerTitle, subtitle: bannerSubtitle } = orderBanner || defaultOrderBanner;
+
   // ডিফল্ট ফিচার (যদি API থেকে না আসে)
   const defaultFeatures = [
-    {
-      id: 1,
-      icon: "FaLeaf",
-      title: "১০০% খাঁটি পণ্য",
-      description: "প্রাকৃতিক উপাদানে তৈরি, কোনো কেমিক্যাল বা প্রিজারভেটিভ নেই",
-    },
-    {
-      id: 2,
-      icon: "FaTruck",
-      title: "দ্রুত ডেলিভারি",
-      description: "সারাদেশে ২৪-৪৮ ঘণ্টার মধ্যে পণ্য পৌঁছে দিন",
-    },
-    {
-      id: 3,
-      icon: "FaShieldAlt",
-      title: "নিরাপদ পেমেন্ট",
-      description: "ক্যাশ অন ডেলিভারি ও অনলাইন পেমেন্ট সুবিধা",
-    },
-    {
-      id: 4,
-      icon: "FaSmile",
-      title: "গ্রাহক সন্তুষ্টি",
-      description: "৯৮% গ্রাহক আমাদের পণ্য ও সেবায় সন্তুষ্ট",
-    },
-    {
-      id: 5,
-      icon: "FaHeadset",
-      title: "২৪/৭ সাপোর্ট",
-      description: "যেকোনো সমস্যায় আমাদের টিম আপনার পাশে",
-    },
-    {
-      id: 6,
-      icon: "FaCertificate",
-      title: "সনদপ্রাপ্ত পণ্য",
-      description: "গুণগত মানের সার্টিফিকেট প্রাপ্ত ও অনুমোদিত",
-    },
+    // { id: 1, icon: "FaLeaf", title: "১০০% খাঁটি পণ্য", description: "প্রাকৃতিক উপাদানে তৈরি, কোনো কেমিক্যাল বা প্রিজারভেটিভ নেই" },
+    // { id: 2, icon: "FaTruck", title: "দ্রুত ডেলিভারি", description: "সারাদেশে ২৪-৪৮ ঘণ্টার মধ্যে পণ্য পৌঁছে দিন" },
+    // { id: 3, icon: "FaShieldAlt", title: "নিরাপদ পেমেন্ট", description: "ক্যাশ অন ডেলিভারি ও অনলাইন পেমেন্ট সুবিধা" },
+    // { id: 4, icon: "FaSmile", title: "গ্রাহক সন্তুষ্টি", description: "৯৮% গ্রাহক আমাদের পণ্য ও সেবায় সন্তুষ্ট" },
+    // { id: 5, icon: "FaHeadset", title: "২৪/৭ সাপোর্ট", description: "যেকোনো সমস্যায় আমাদের টিম আপনার পাশে" },
+    // { id: 6, icon: "FaCertificate", title: "সনদপ্রাপ্ত পণ্য", description: "গুণগত মানের সার্টিফিকেট প্রাপ্ত ও অনুমোদিত" },
   ];
 
   // ডিফল্ট পরিসংখ্যান
@@ -66,7 +61,7 @@ const WhyChooseUs = ({ features = [], stats = [] }) => {
 
   // আইকন ম্যাপিং
   const getIcon = (iconName) => {
-    const icons = {
+    const iconMap = {
       FaLeaf: <FaLeaf className="w-6 h-6 md:w-7 md:h-7" />,
       FaTruck: <FaTruck className="w-6 h-6 md:w-7 md:h-7" />,
       FaShieldAlt: <FaShieldAlt className="w-6 h-6 md:w-7 md:h-7" />,
@@ -74,7 +69,7 @@ const WhyChooseUs = ({ features = [], stats = [] }) => {
       FaHeadset: <FaHeadset className="w-6 h-6 md:w-7 md:h-7" />,
       FaCertificate: <FaCertificate className="w-6 h-6 md:w-7 md:h-7" />,
     };
-    return icons[iconName] || <FaLeaf className="w-6 h-6 md:w-7 md:h-7" />;
+    return iconMap[iconName] || <FaLeaf className="w-6 h-6 md:w-7 md:h-7" />;
   };
 
   const handleOrderClick = () => {
@@ -87,40 +82,47 @@ const WhyChooseUs = ({ features = [], stats = [] }) => {
     setIsDrawerOpen(true);
   };
 
+  // হাইলাইট টেক্সট সহ টাইটেল রেন্ডার
+  const renderTitle = () => {
+    if (!highlightText) return <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">{title}</h2>;
+    
+    const parts = title.split(highlightText);
+    return (
+      <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+        {parts[0]}
+        <span className="text-rose-500">{highlightText}</span>
+        {parts[1]}
+      </h2>
+    );
+  };
+
   return (
     <>
       <section className="py-16 md:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          {/* সেকশন টাইটেল */}
+          {/* সেকশন হেডার - ডাইনামিক */}
           <div className="text-center mb-12 md:mb-16">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              কেন বেছে নেবেন <span className="text-rose-500">আমাদের?</span>
-            </h2>
+            {renderTitle()}
             <div className="w-24 h-1 bg-rose-500 mx-auto mb-6 rounded-full"></div>
             <p className="text-gray-600 text-base md:text-lg max-w-2xl mx-auto">
-              আমরা চাই আপনাকে সেরা সেবা ও মানসম্মত পণ্য দিতে। জেনে নিন কেন আমরা সবার প্রথম পছন্দ।
+              {subtitle}
             </p>
           </div>
 
-          {/* ফিচার গ্রিড */}
+          {/* ফিচার গ্রিড - ডাইনামিক */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {displayFeatures.map((feature, index) => (
               <div
                 key={feature.id || index}
                 className="group bg-white border border-gray-100 rounded-2xl p-6 md:p-8 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
               >
-                {/* আইকন */}
                 <div className="w-14 h-14 md:w-16 md:h-16 bg-rose-50 rounded-xl flex items-center justify-center mb-5 text-rose-500 group-hover:bg-rose-500 group-hover:text-white transition-all duration-300">
                   {typeof feature.icon === 'string' ? getIcon(feature.icon) : feature.icon}
                 </div>
-                
-                {/* টাইটেল */}
                 <h3 className="text-xl md:text-2xl font-semibold text-gray-800 mb-2">
                   {feature.title}
                 </h3>
-                
-                {/* বিবরণ */}
                 <p className="text-gray-500 text-sm md:text-base leading-relaxed">
                   {feature.description}
                 </p>
@@ -128,23 +130,23 @@ const WhyChooseUs = ({ features = [], stats = [] }) => {
             ))}
           </div>
 
-          {/* অর্ডার ব্যানার */}
+          {/* অর্ডার ব্যানার - ডাইনামিক */}
           <div className="mt-16 bg-gradient-to-r from-rose-500 to-rose-600 rounded-2xl p-8 md:p-10 text-center text-white">
             <h3 className="text-2xl md:text-3xl font-bold mb-3">
-              আজই অর্ডার করুন ও পান বিশেষ ছাড়!
+              {bannerTitle}
             </h3>
             <p className="text-rose-100 mb-6 max-w-2xl mx-auto">
-              সীমিত সময়ের অফার। দেরি না করে এখনই অর্ডার করুন।
+              {bannerSubtitle}
             </p>
             <button
               onClick={handleOrderClick}
               className="bg-white text-rose-600 hover:bg-gray-100 px-8 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
             >
-              এখনই অর্ডার করুন →
+              {buttonText}
             </button>
           </div>
 
-          {/* পরিসংখ্যান */}
+          {/* পরিসংখ্যান - ডাইনামিক */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12">
             {displayStats.map((stat, index) => (
               <div key={index} className="text-center p-4 bg-gray-50 rounded-xl">

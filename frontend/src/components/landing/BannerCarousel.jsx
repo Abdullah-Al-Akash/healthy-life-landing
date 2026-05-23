@@ -1,19 +1,67 @@
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination, Navigation } from "swiper/modules";
 import { FiChevronLeft, FiChevronRight, FiShoppingCart } from "react-icons/fi";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CheckoutDrawer from "./CheckoutDrawer";
 
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
 
-const BannerCarousel = ({ banners = [] }) => {
+const BannerCarousel = ({ banners = [], config = {} }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  
+  // কাউন্টডাউন টাইমার স্টেট
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0
+  });
+  const [timerEnded, setTimerEnded] = useState(false);
 
-  // যদি কোন ব্যানার না থাকে
+  // ডিফল্ট কনফিগ
+  const defaultConfig = {
+    buttonText: "এখনই অর্ডার করুন",
+    autoPlayDelay: 5000,
+    showTimer: true,
+    targetDate: null,
+  };
+
+  const { buttonText, autoPlayDelay, showTimer, targetDate } = { ...defaultConfig, ...config };
+
+  // কাউন্টডাউন ক্যালকুলেশন
+  useEffect(() => {
+    if (!showTimer || !targetDate) return;
+
+    const calculateTimeLeft = () => {
+      const now = new Date().getTime();
+      const target = new Date(targetDate).getTime();
+      const difference = target - now;
+
+      if (difference <= 0) {
+        setTimerEnded(true);
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+
+      setTimerEnded(false);
+      setTimeLeft({
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+        minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+        seconds: Math.floor((difference % (1000 * 60)) / 1000)
+      });
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+
+    return () => clearInterval(timer);
+  }, [targetDate, showTimer]);
+
   if (!banners || banners.length === 0) {
     return null;
   }
@@ -27,9 +75,18 @@ const BannerCarousel = ({ banners = [] }) => {
       offerPrice: currentBanner.offerPrice,
       originalPrice: currentBanner.originalPrice,
       image: currentBanner.image,
+      buttonText: currentBanner.buttonText || buttonText,
     });
     setIsDrawerOpen(true);
   };
+
+  const getButtonText = () => {
+    if (currentBanner.buttonText) return currentBanner.buttonText;
+    return `${buttonText} - ${currentBanner.offerPrice} টাকায়`;
+  };
+
+  // দুই অঙ্কের সংখ্যা ফরম্যাট
+  const formatNumber = (num) => String(num).padStart(2, '0');
 
   return (
     <>
@@ -40,10 +97,7 @@ const BannerCarousel = ({ banners = [] }) => {
             modules={[Autoplay, Pagination, Navigation]}
             spaceBetween={0}
             slidesPerView={1}
-            autoplay={{
-              delay: 5000,
-              disableOnInteraction: false,
-            }}
+            autoplay={{ delay: autoPlayDelay, disableOnInteraction: false }}
             pagination={{
               clickable: true,
               bulletClass: "swiper-pagination-bullet !bg-neutral-400 !w-2 !h-2 md:!w-3 md:!h-3",
@@ -67,7 +121,6 @@ const BannerCarousel = ({ banners = [] }) => {
             ))}
           </Swiper>
 
-          {/* নেভিগেশন বাটন */}
           <button className="swiper-button-prev-custom absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white rounded-full p-2 md:p-3 shadow-lg transition-all duration-300">
             <FiChevronLeft size={20} className="text-neutral-700" />
           </button>
@@ -79,6 +132,7 @@ const BannerCarousel = ({ banners = [] }) => {
         {/* কন্টেন্ট সেকশন */}
         <div className="container-custom mt-8 md:mt-12">
           <div className="text-center max-w-3xl mx-auto">
+            
             {/* ডিসকাউন্ট ব্যাজ */}
             {currentBanner.discount && (
               <span className="inline-block bg-gradient-to-r from-rose-500 to-pink-500 text-white px-4 py-1 rounded-full text-sm md:text-base font-semibold mb-4 animate-pulse">
@@ -106,7 +160,7 @@ const BannerCarousel = ({ banners = [] }) => {
             )}
 
             {/* প্রাইস */}
-            <div className="flex items-center justify-center gap-3 mb-8">
+            <div className="flex items-center justify-center gap-3 mb-6">
               <span className="text-2xl md:text-3xl font-bold text-rose-500">
                 ৳{currentBanner.offerPrice}
               </span>
@@ -117,7 +171,45 @@ const BannerCarousel = ({ banners = [] }) => {
               )}
             </div>
 
-            {/* নাচুয়ে অর্ডার বাটন */}
+            {/* কাউন্টডাউন টাইমার */}
+            {showTimer && targetDate && !timerEnded && (
+              <div className="mb-6">
+                <div className="inline-flex items-center gap-3 bg-gradient-to-r from-rose-50 to-pink-50 px-6 py-3 rounded-2xl shadow-sm">
+                  <div className="text-center">
+                    <div className="text-2xl md:text-3xl font-bold text-rose-600">{formatNumber(timeLeft.days)}</div>
+                    <div className="text-xs text-gray-500">দিন</div>
+                  </div>
+                  <span className="text-2xl font-bold text-rose-400">:</span>
+                  <div className="text-center">
+                    <div className="text-2xl md:text-3xl font-bold text-rose-600">{formatNumber(timeLeft.hours)}</div>
+                    <div className="text-xs text-gray-500">ঘন্টা</div>
+                  </div>
+                  <span className="text-2xl font-bold text-rose-400">:</span>
+                  <div className="text-center">
+                    <div className="text-2xl md:text-3xl font-bold text-rose-600">{formatNumber(timeLeft.minutes)}</div>
+                    <div className="text-xs text-gray-500">মিনিট</div>
+                  </div>
+                  <span className="text-2xl font-bold text-rose-400">:</span>
+                  <div className="text-center">
+                    <div className="text-2xl md:text-3xl font-bold text-rose-600">{formatNumber(timeLeft.seconds)}</div>
+                    <div className="text-xs text-gray-500">সেকেন্ড</div>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-400 mt-2">অফার শেষ হতে বাকি</p>
+              </div>
+            )}
+
+            {/* টাইমার শেষ হয়ে গেলে মেসেজ */}
+            {showTimer && targetDate && timerEnded && (
+              <div className="mb-6">
+                <div className="inline-flex items-center gap-2 bg-red-50 px-6 py-3 rounded-2xl shadow-sm">
+                  <span className="text-red-500 text-xl">⏰</span>
+                  <span className="text-red-600 font-medium">অফার শেষ হয়েছে!</span>
+                </div>
+              </div>
+            )}
+
+            {/* অর্ডার বাটন */}
             <div className="relative inline-block">
               <div className="absolute -inset-2 bg-gradient-to-r from-rose-500 to-pink-500 rounded-full blur-xl opacity-50 animate-pulse"></div>
               
@@ -131,23 +223,13 @@ const BannerCarousel = ({ banners = [] }) => {
                 <span className="relative flex items-center gap-3">
                   <FiShoppingCart className="w-5 h-5 md:w-6 md:h-6" />
                   <span className="text-base md:text-lg font-bold tracking-wide">
-                    এখনই অর্ডার করুন - {currentBanner.offerPrice} টাকায়
+                    {getButtonText()}
                   </span>
                   <svg className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </span>
               </button>
-            </div>
-
-            {/* অফার টাইমার */}
-            <div className="mt-6 inline-flex items-center gap-2 text-sm text-neutral-500 bg-amber-50 px-4 py-2 rounded-full border border-amber-200">
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-              </span>
-              <span className="font-medium text-amber-700">সীমিত সময়ের অফার! আজই অর্ডার করুন</span>
-              <span className="text-red-500 font-bold animate-pulse">🔥</span>
             </div>
 
             {/* স্লাইড ইন্ডিকেটর */}
@@ -179,12 +261,8 @@ const BannerCarousel = ({ banners = [] }) => {
 
       <style>{`
         @keyframes wiggle {
-          0%, 100% {
-            transform: translateY(0) scale(1);
-          }
-          50% {
-            transform: translateY(-6px) scale(1.02);
-          }
+          0%, 100% { transform: translateY(0) scale(1); }
+          50% { transform: translateY(-6px) scale(1.02); }
         }
       `}</style>
     </>

@@ -3,15 +3,37 @@ import { Autoplay, Pagination, Navigation } from "swiper/modules";
 import { FaStar, FaStarHalfAlt, FaRegStar, FaQuoteLeft, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useState } from "react";
 
-// Swiper CSS
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
 import CheckoutDrawer from "./CheckoutDrawer";
 
-const Reviews = ({ reviews = [] }) => {
+const Reviews = ({ 
+  reviews = [], 
+  heading = {}, 
+  stats = {},
+  buttonText = "এখনই অর্ডার করুন",
+  productInfo = {}
+}) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+
+  // ডিফল্ট হেডিং
+  const defaultHeading = {
+    badge: "গ্রাহকদের মতামত",
+    title: "তারা যা বলছেন",
+    highlightText: "বলছেন",
+    subtitle: "১০,০০০+ খুশি গ্রাহক আমাদের মূল্যায়ন করেছেন"
+  };
+
+  // ডিফল্ট পরিসংখ্যান
+  const defaultStats = {
+    totalCustomers: "১০,০০০+",
+    averageRatingLabel: "টি রিভিউ"
+  };
+
+  const { badge, title, highlightText, subtitle } = heading || defaultHeading;
+  const { totalCustomers, averageRatingLabel } = stats || defaultStats;
 
   // ডিফল্ট রিভিউ (যদি API থেকে না আসে)
   const defaultReviews = [
@@ -101,12 +123,28 @@ const Reviews = ({ reviews = [] }) => {
     1: displayReviews.filter(r => r.rating === 1).length,
   };
 
+  // হাইলাইট টেক্সট সহ টাইটেল রেন্ডার
+  const renderTitle = () => {
+    if (!highlightText) {
+      return <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">{title}</h2>;
+    }
+    
+    const parts = title.split(highlightText);
+    return (
+      <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+        {parts[0]}
+        <span className="text-rose-500">{highlightText}</span>
+        {parts[1]}
+      </h2>
+    );
+  };
+
   const handleOrderClick = () => {
     setSelectedProduct({
-      id: "review-product",
-      title: "জনপ্রিয় হারবাল চা",
-      offerPrice: "২৯৯",
-      image: "https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=1200",
+      id: productInfo.id || "review-product",
+      title: productInfo.title || "জনপ্রিয় হারবাল চা",
+      offerPrice: productInfo.offerPrice || "২৯৯",
+      image: productInfo.image || "https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=1200",
     });
     setIsDrawerOpen(true);
   };
@@ -116,17 +154,17 @@ const Reviews = ({ reviews = [] }) => {
       <section className="py-16 md:py-24 bg-gradient-to-br from-gray-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          {/* সেকশন টাইটেল */}
+          {/* সেকশন হেডার - ডাইনামিক */}
           <div className="text-center mb-12 md:mb-16">
-            <span className="inline-block px-3 py-1 bg-rose-100 text-rose-600 rounded-full text-sm font-semibold mb-4">
-              গ্রাহকদের মতামত
-            </span>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              তারা যা <span className="text-rose-500">বলছেন</span>
-            </h2>
+            {badge && (
+              <span className="inline-block px-3 py-1 bg-rose-100 text-rose-600 rounded-full text-sm font-semibold mb-4">
+                {badge}
+              </span>
+            )}
+            {renderTitle()}
             <div className="w-24 h-1 bg-rose-500 mx-auto mb-6 rounded-full"></div>
             <p className="text-gray-600 text-base md:text-lg max-w-2xl mx-auto">
-              ১০,০০০+ খুশি গ্রাহক আমাদের মূল্যায়ন করেছেন
+              {subtitle?.replace('১০,০০০+', totalCustomers) || subtitle}
             </p>
           </div>
 
@@ -141,7 +179,7 @@ const Reviews = ({ reviews = [] }) => {
                 {renderStars(parseFloat(averageRating))}
               </div>
               <div className="text-gray-500 text-sm">
-                {totalReviews}টি রিভিউ
+                {totalReviews} {averageRatingLabel || "টি রিভিউ"}
               </div>
             </div>
 
@@ -195,22 +233,15 @@ const Reviews = ({ reviews = [] }) => {
               {displayReviews.map((review) => (
                 <SwiperSlide key={review.id}>
                   <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 h-full border border-gray-100">
-                    {/* কোট আইকন */}
                     <div className="mb-4">
                       <FaQuoteLeft className="text-rose-200 text-2xl" />
                     </div>
-                    
-                    {/* কমেন্ট */}
                     <p className="text-gray-600 text-sm md:text-base leading-relaxed mb-4 line-clamp-4">
                       "{review.comment}"
                     </p>
-                    
-                    {/* রেটিং */}
                     <div className="flex gap-1 mb-4">
                       {renderStars(review.rating)}
                     </div>
-                    
-                    {/* গ্রাহক তথ্য */}
                     <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
                       <img
                         src={review.avatar}
@@ -233,7 +264,6 @@ const Reviews = ({ reviews = [] }) => {
               ))}
             </Swiper>
 
-            {/* কাস্টম নেভিগেশন বাটন */}
             <button className="review-button-prev absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-md hover:bg-rose-500 hover:text-white transition-all duration-300 -ml-4 md:-ml-5">
               <FaChevronLeft size={18} />
             </button>
@@ -242,13 +272,13 @@ const Reviews = ({ reviews = [] }) => {
             </button>
           </div>
 
-          {/* অর্ডার বাটন */}
+          {/* অর্ডার বাটন - ডাইনামিক */}
           <div className="text-center mt-12">
             <button
               onClick={handleOrderClick}
               className="bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white px-8 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
             >
-              এখনই অর্ডার করুন
+              {buttonText}
             </button>
           </div>
         </div>
