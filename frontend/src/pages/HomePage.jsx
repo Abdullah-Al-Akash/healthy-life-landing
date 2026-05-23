@@ -62,8 +62,8 @@ const HomePage = () => {
         reviews={product.reviews || []}
         heading={product.sectionHeadings?.reviews}
         stats={product.reviewStats}
-        buttonText={product.buttonText}
-        productInfo={product.productInfo}
+        buttonTexts={product.buttonTexts || {}}
+        currentProduct={product} // ← যোগ করো
       />
 
       <FAQ
@@ -71,8 +71,8 @@ const HomePage = () => {
         contactInfo={product.contactInfo || {}}
         heading={product.sectionHeadings?.faq}
         contactHeading={product.contactHeading}
-        buttonText={product.buttonText}
-        productInfo={product.productInfo}
+        buttonTexts={product.buttonTexts || {}}
+        currentProduct={product} // ← যোগ করো
         supportHours={product.supportHours}
       />
     </div>

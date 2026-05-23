@@ -12,28 +12,32 @@ const Reviews = ({
   reviews = [], 
   heading = {}, 
   stats = {},
-  buttonText = "এখনই অর্ডার করুন",
-  productInfo = {}
+  buttonTexts = {},
+  currentProduct = null
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+
+  // রিভিউ সেকশনের বাটন টেক্সট buttonTexts.reviews থেকে নিচ্ছে
+  const reviewsButtonText = buttonTexts?.reviews || "এখনই অর্ডার করুন";
 
   // ডিফল্ট হেডিং
   const defaultHeading = {
     badge: "গ্রাহকদের মতামত",
     title: "তারা যা বলছেন",
     highlightText: "বলছেন",
-    subtitle: "১০,০০০+ খুশি গ্রাহক আমাদের মূল্যায়ন করেছেন"
+    subtitle: "{totalCustomers}+ খুশি গ্রাহক আমাদের মূল্যায়ন করেছেন"
   };
 
   // ডিফল্ট পরিসংখ্যান
   const defaultStats = {
     totalCustomers: "১০,০০০+",
-    averageRatingLabel: "টি রিভিউ"
+    averageRatingLabel: "টি রিভিউ",
+    distributionHeading: "রেটিং ডিস্ট্রিবিউশন"
   };
 
   const { badge, title, highlightText, subtitle } = heading || defaultHeading;
-  const { totalCustomers, averageRatingLabel } = stats || defaultStats;
+  const { totalCustomers, averageRatingLabel, distributionHeading } = stats || defaultStats;
 
   // ডিফল্ট রিভিউ (যদি API থেকে না আসে)
   const defaultReviews = [
@@ -95,7 +99,6 @@ const Reviews = ({
 
   const displayReviews = reviews.length > 0 ? reviews : defaultReviews;
 
-  // রেটিং স্টার দেখানোর ফাংশন
   const renderStars = (rating) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
@@ -110,11 +113,9 @@ const Reviews = ({
     return stars;
   };
 
-  // মোট রেটিং ও সংখ্যা
   const totalReviews = displayReviews.length;
   const averageRating = totalReviews > 0 ? (displayReviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews).toFixed(1) : 0;
   
-  // রেটিং ডিস্ট্রিবিউশন
   const ratingDistribution = {
     5: displayReviews.filter(r => r.rating === 5).length,
     4: displayReviews.filter(r => r.rating === 4).length,
@@ -123,12 +124,10 @@ const Reviews = ({
     1: displayReviews.filter(r => r.rating === 1).length,
   };
 
-  // হাইলাইট টেক্সট সহ টাইটেল রেন্ডার
   const renderTitle = () => {
-    if (!highlightText) {
+    if (!highlightText || !title.includes(highlightText)) {
       return <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">{title}</h2>;
     }
-    
     const parts = title.split(highlightText);
     return (
       <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
@@ -139,12 +138,22 @@ const Reviews = ({
     );
   };
 
+  const renderSubtitle = () => {
+    if (!subtitle) return null;
+    return subtitle.replace('{totalCustomers}', totalCustomers);
+  };
+
   const handleOrderClick = () => {
+    if (!currentProduct) return;
+    
+    const firstBanner = currentProduct.banners?.[0] || {};
+    
     setSelectedProduct({
-      id: productInfo.id || "review-product",
-      title: productInfo.title || "জনপ্রিয় হারবাল চা",
-      offerPrice: productInfo.offerPrice || "২৯৯",
-      image: productInfo.image || "https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=1200",
+      id: currentProduct._id,
+      title: currentProduct.navTitle || firstBanner.title || "হারবাল পণ্য",
+      offerPrice: firstBanner.offerPrice || "২৯৯",
+      originalPrice: firstBanner.originalPrice,
+      image: firstBanner.image,
     });
     setIsDrawerOpen(true);
   };
@@ -154,7 +163,6 @@ const Reviews = ({
       <section className="py-16 md:py-24 bg-gradient-to-br from-gray-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          {/* সেকশন হেডার - ডাইনামিক */}
           <div className="text-center mb-12 md:mb-16">
             {badge && (
               <span className="inline-block px-3 py-1 bg-rose-100 text-rose-600 rounded-full text-sm font-semibold mb-4">
@@ -164,13 +172,11 @@ const Reviews = ({
             {renderTitle()}
             <div className="w-24 h-1 bg-rose-500 mx-auto mb-6 rounded-full"></div>
             <p className="text-gray-600 text-base md:text-lg max-w-2xl mx-auto">
-              {subtitle?.replace('১০,০০০+', totalCustomers) || subtitle}
+              {renderSubtitle()}
             </p>
           </div>
 
-          {/* রেটিং সামারি */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            {/* এভারেজ রেটিং */}
             <div className="text-center p-6 bg-white rounded-2xl shadow-md">
               <div className="text-5xl md:text-6xl font-bold text-rose-500 mb-2">
                 {averageRating}
@@ -183,9 +189,8 @@ const Reviews = ({
               </div>
             </div>
 
-            {/* রেটিং ডিস্ট্রিবিউশন */}
             <div className="col-span-2 p-6 bg-white rounded-2xl shadow-md">
-              <h3 className="font-semibold text-gray-800 mb-3">রেটিং ডিস্ট্রিবিউশন</h3>
+              <h3 className="font-semibold text-gray-800 mb-3">{distributionHeading || "রেটিং ডিস্ট্রিবিউশন"}</h3>
               <div className="space-y-2">
                 {[5, 4, 3, 2, 1].map((star) => (
                   <div key={star} className="flex items-center gap-2">
@@ -203,7 +208,6 @@ const Reviews = ({
             </div>
           </div>
 
-          {/* রিভিউ ক্যারোজেল */}
           <div className="relative">
             <Swiper
               modules={[Autoplay, Pagination, Navigation]}
@@ -214,10 +218,7 @@ const Reviews = ({
                 768: { slidesPerView: 2 },
                 1024: { slidesPerView: 3 },
               }}
-              autoplay={{
-                delay: 4000,
-                disableOnInteraction: false,
-              }}
+              autoplay={{ delay: 4000, disableOnInteraction: false }}
               pagination={{
                 clickable: true,
                 bulletClass: "swiper-pagination-bullet !bg-gray-300 !w-2 !h-2 md:!w-2.5 md:!h-2.5",
@@ -243,15 +244,9 @@ const Reviews = ({
                       {renderStars(review.rating)}
                     </div>
                     <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
-                      <img
-                        src={review.avatar}
-                        alt={review.name}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
+                      <img src={review.avatar} alt={review.name} className="w-10 h-10 rounded-full object-cover" />
                       <div>
-                        <h4 className="font-semibold text-gray-800 text-sm">
-                          {review.name}
-                        </h4>
+                        <h4 className="font-semibold text-gray-800 text-sm">{review.name}</h4>
                         <div className="flex items-center gap-2 text-xs text-gray-400">
                           <span>{review.location}</span>
                           <span>•</span>
@@ -272,13 +267,12 @@ const Reviews = ({
             </button>
           </div>
 
-          {/* অর্ডার বাটন - ডাইনামিক */}
           <div className="text-center mt-12">
             <button
               onClick={handleOrderClick}
               className="bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white px-8 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
             >
-              {buttonText}
+              {reviewsButtonText}
             </button>
           </div>
         </div>

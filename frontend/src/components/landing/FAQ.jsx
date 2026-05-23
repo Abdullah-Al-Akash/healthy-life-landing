@@ -8,13 +8,16 @@ const FAQ = ({
   contactInfo = {}, 
   heading = {}, 
   contactHeading = {},
-  buttonText = "এখনই অর্ডার করুন",
-  productInfo = {},
+  buttonTexts = {},
+  currentProduct = null,
   supportHours = "সকাল ৯টা - রাত ১০টা (শুক্রবার বন্ধ)"
 }) => {
   const [openIndex, setOpenIndex] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+
+  // FAQ সেকশনের বাটন টেক্সট buttonTexts.faq থেকে নিচ্ছে
+  const faqButtonText = buttonTexts?.faq || "এখনই অর্ডার করুন";
 
   // ডিফল্ট হেডিং
   const defaultHeading = {
@@ -83,7 +86,7 @@ const FAQ = ({
 
   // হাইলাইট টেক্সট সহ টাইটেল রেন্ডার
   const renderTitle = () => {
-    if (!highlightText) {
+    if (!highlightText || !title.includes(highlightText)) {
       return <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">{title}</h2>;
     }
     
@@ -98,11 +101,16 @@ const FAQ = ({
   };
 
   const handleOrderClick = () => {
+    if (!currentProduct) return;
+    
+    const firstBanner = currentProduct.banners?.[0] || {};
+    
     setSelectedProduct({
-      id: productInfo.id || "faq-product",
-      title: productInfo.title || "সেরা হারবাল পণ্য",
-      offerPrice: productInfo.offerPrice || "২৯৯",
-      image: productInfo.image || "https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=1200",
+      id: currentProduct._id,
+      title: currentProduct.navTitle || firstBanner.title || "হারবাল পণ্য",
+      offerPrice: firstBanner.offerPrice || "২৯৯",
+      originalPrice: firstBanner.originalPrice,
+      image: firstBanner.image,
     });
     setIsDrawerOpen(true);
   };
@@ -230,7 +238,7 @@ const FAQ = ({
                 onClick={handleOrderClick}
                 className="bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white px-8 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
               >
-                {buttonText}
+                {faqButtonText}
               </button>
             </div>
           </div>
