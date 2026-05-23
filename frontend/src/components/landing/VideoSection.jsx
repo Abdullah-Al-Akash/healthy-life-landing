@@ -5,12 +5,16 @@ import CheckoutDrawer from "./CheckoutDrawer";
 const VideoSection = ({ 
   video = null, 
   heading = {}, 
-  buttonText = "এখনই অর্ডার করুন",
+  buttonTexts = {},
   stats = {},
-  currentProduct = null  // ← পুরো প্রোডাক্ট পাস করো
+  currentProduct = null
 }) => {
   const [showModal, setShowModal] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [thumbnailError, setThumbnailError] = useState(false);
+
+  // ভিডিও সেকশনের বাটন টেক্সট buttonTexts.video থেকে নিচ্ছে
+  const videoButtonText = buttonTexts?.video || "এখনই অর্ডার করুন";
 
   // ডিফল্ট হেডিং
   const defaultHeading = {
@@ -40,6 +44,27 @@ const VideoSection = ({
 
   const currentVideo = video || defaultVideo;
 
+  // YouTube থাম্বনেইল URL জেনারেট করার ফাংশন
+  const getYouTubeThumbnail = (videoId) => {
+    if (!videoId) return "";
+    // একাধিক URL ট্রাই করবে
+    const urls = [
+      `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+      `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+      `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
+      `https://img.youtube.com/vi/${videoId}/default.jpg`
+    ];
+    
+    // যদি এরর হয়ে থাকে তাহলে পরবর্তী URL ব্যবহার করবে
+    if (thumbnailError) {
+      const currentIndex = urls.indexOf(currentVideo.thumbnail);
+      if (currentIndex < urls.length - 1) {
+        return urls[currentIndex + 1];
+      }
+    }
+    return urls[0];
+  };
+
   // প্রোডাক্ট ডাটা (ভিডিও সেকশনের জন্য) - currentProduct থেকে নাও
   const firstBanner = currentProduct?.banners?.[0] || {};
   
@@ -50,6 +75,14 @@ const VideoSection = ({
     originalPrice: firstBanner.originalPrice,
     image: firstBanner.image || "https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=1200",
   };
+
+  // থাম্বনেইল ইমেজ এরর হ্যান্ডলার
+  const handleThumbnailError = () => {
+    setThumbnailError(true);
+  };
+
+  // বর্তমান থাম্বনেইল URL
+  const thumbnailUrl = currentVideo.thumbnail || getYouTubeThumbnail(currentVideo.videoId);
 
   // হাইলাইট টেক্সট সহ টাইটেল রেন্ডার
   const renderTitle = () => {
@@ -92,9 +125,16 @@ const VideoSection = ({
               {/* থাম্বনেইল */}
               <div
                 className="relative aspect-video bg-cover bg-center cursor-pointer"
-                style={{ backgroundImage: `url(${currentVideo.thumbnail})` }}
+                style={{ backgroundImage: `url(${thumbnailUrl})` }}
                 onClick={() => setShowModal(true)}
               >
+                {/* থাম্বনেইল ইমেজ এরর হলে ব্যাকগ্রাউন্ড কালার */}
+                {thumbnailError && (
+                  <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
+                    <FaYoutube className="text-red-500 text-6xl" />
+                  </div>
+                )}
+                
                 {/* ওভারলে */}
                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center">
                   {/* প্লে বাটন */}
@@ -149,7 +189,7 @@ const VideoSection = ({
                 }}
               >
                 <FiShoppingCart className="text-base md:text-lg" />
-                <span>{buttonText} - ৳{product.offerPrice}</span>
+                <span>{videoButtonText} - ৳{product.offerPrice}</span>
                 <svg className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>

@@ -37,39 +37,37 @@ const HomePage = () => {
 
   return (
     <div>
-      <BannerCarousel 
-        banners={product.banners || []} 
-      />
-      
-      <DeliveryInfo 
-        features={product.deliveryFeatures || []} 
-      />
-      
-      <WhyChooseUs 
-        features={product.whyChooseUs || []} 
+      <BannerCarousel banners={product.banners || []} />
+
+      <DeliveryInfo features={product.deliveryFeatures || []} />
+
+      <WhyChooseUs
+        features={product.whyChooseUs || []}
         stats={product.whyChooseUsStats || []}
         heading={product.sectionHeadings?.whyChooseUs}
         orderBanner={product.orderBanner}
-        buttonText={product.buttonText}
+        buttonTexts={product.buttonTexts || {}} // ← এই লাইন
+        currentProduct={product}
       />
-      
-      <VideoSection 
-        video={product.video || null} 
+
+      <VideoSection
+        video={product.video || null}
         heading={product.sectionHeadings?.video}
         stats={product.videoStats}
-        buttonText={product.buttonText}
+        buttonTexts={product.buttonTexts || {}} // ← এই লাইন
+        currentProduct={product}
       />
-      
-      <Reviews 
-        reviews={product.reviews || []} 
+
+      <Reviews
+        reviews={product.reviews || []}
         heading={product.sectionHeadings?.reviews}
         stats={product.reviewStats}
         buttonText={product.buttonText}
         productInfo={product.productInfo}
       />
-      
-      <FAQ 
-        faqs={product.faqs || []} 
+
+      <FAQ
+        faqs={product.faqs || []}
         contactInfo={product.contactInfo || {}}
         heading={product.sectionHeadings?.faq}
         contactHeading={product.contactHeading}

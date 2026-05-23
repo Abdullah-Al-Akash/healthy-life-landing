@@ -6,29 +6,50 @@ const VideoForm = ({ data, onChange }) => {
   const sectionHeadings = data.sectionHeadings || {};
   const videoStats = data.videoStats || {};
   
-  // বাটন টেক্সটের জন্য লোকাল স্টেট
-  const [localButtonText, setLocalButtonText] = useState(data.buttonText || "এখনই অর্ডার করুন");
+  // বাটন টেক্সটের জন্য লোকাল স্টেট - buttonTexts.video থেকে নিবে
+  const [localButtonText, setLocalButtonText] = useState(
+    data.buttonTexts?.video || ""
+  );
 
   // ডাটা পরিবর্তন হলে লোকাল স্টেট আপডেট
   useEffect(() => {
-    setLocalButtonText(data.buttonText || "এখনই অর্ডার করুন");
-  }, [data.buttonText]);
+    setLocalButtonText(data.buttonTexts?.video || "");
+  }, [data.buttonTexts?.video]);
 
   // বাটন টেক্সট পরিবর্তন হ্যান্ডলার
   const handleButtonTextChange = (e) => {
     const newValue = e.target.value;
     setLocalButtonText(newValue);
-    onChange("buttonText", newValue);
+    onChange("buttonTexts", { 
+      ...data.buttonTexts, 
+      video: newValue 
+    });
   };
 
-  // YouTube থাম্বনেইল URL জেনারেট
+  // YouTube থাম্বনেইল URL জেনারেট - সঠিক URL ফরম্যাট
   const getYouTubeThumbnail = (videoId) => {
     if (!videoId) return "";
+    // maxresdefault না থাকলে hqdefault ব্যবহার করবে
+    return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+  };
+
+  // থাম্বনেইল ইমেজ লোড না হলে hqdefault ব্যবহারের জন্য
+  const [thumbnailError, setThumbnailError] = useState(false);
+  
+  const getThumbnailUrl = (videoId) => {
+    if (!videoId) return "";
+    if (thumbnailError) {
+      return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+    }
     return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
   };
 
   const updateVideo = (field, value) => {
     onChange("video", { ...video, [field]: value });
+    // ভিডিও আইডি পরিবর্তন হলে থাম্বনেইল এরর রিসেট করো
+    if (field === "videoId") {
+      setThumbnailError(false);
+    }
   };
 
   const updateSectionHeading = (field, value) => {
@@ -166,9 +187,11 @@ const VideoForm = ({ data, onChange }) => {
                 className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-rose-400 focus:border-rose-400 outline-none transition"
               />
               {video.videoId && (
-                <div
-                  className="w-16 h-12 bg-cover bg-center rounded-lg border"
-                  style={{ backgroundImage: `url(${getYouTubeThumbnail(video.videoId)})` }}
+                <img
+                  src={getThumbnailUrl(video.videoId)}
+                  alt="YouTube Thumbnail"
+                  className="w-16 h-12 object-cover rounded-lg border"
+                  onError={() => setThumbnailError(true)}
                 />
               )}
             </div>
@@ -205,12 +228,13 @@ const VideoForm = ({ data, onChange }) => {
         </div>
       </div>
 
-      {/* ========== বাটন টেক্সট ========== */}
+      {/* ========== বাটন টেক্সট সেটিংস ========== */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="bg-gradient-to-r from-rose-50 to-pink-50 px-4 py-3 border-b">
           <h3 className="text-md font-semibold text-gray-800 flex items-center gap-2">
             🔘 Button Settings
           </h3>
+          <p className="text-xs text-gray-500 mt-0.5">ভিডিও সেকশনের অর্ডার বাটনের টেক্সট সেট করুন</p>
         </div>
         <div className="p-4">
           <div>
@@ -219,12 +243,14 @@ const VideoForm = ({ data, onChange }) => {
               type="text"
               value={localButtonText}
               onChange={handleButtonTextChange}
-              placeholder="এখনই অর্ডার করুন"
+              placeholder="এখনই অর্ডার করুন (খালি রাখতে পারেন)"
               className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-rose-400 focus:border-rose-400 outline-none transition"
             />
             <p className="text-xs text-gray-400 mt-1">
-              ⓘ এই টেক্সটটি ভিডিও সেকশনের অর্ডার বাটনে দেখাবে
+              খালি রাখলে ডিফল্ট "এখনই অর্ডার করুন" দেখাবে
             </p>
+            
+            {/* প্রিভিউ */}
             <div className="mt-3 p-3 bg-gray-50 rounded-lg">
               <p className="text-xs text-gray-500 mb-2">প্রিভিউ:</p>
               <button className="bg-gradient-to-r from-rose-500 to-pink-500 text-white px-4 py-1.5 rounded-full text-xs font-semibold">

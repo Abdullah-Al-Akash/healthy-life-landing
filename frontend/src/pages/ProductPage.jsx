@@ -69,18 +69,18 @@ const ProductPage = () => {
       <WhyChooseUs
         features={product.whyChooseUs || []}
         stats={product.whyChooseUsStats || []}
-        heading={product.sectionHeadings?.whyChooseUs}
+        heading={product.sectionHeadings?.whyChooseUs} // ← এই লাইন
         orderBanner={product.orderBanner}
-        buttonText={product.buttonText}
-        currentProduct={product} // ← পুরো প্রোডাক্ট পাস করো
+        buttonTexts={product.buttonTexts || {}}
+        currentProduct={product}
       />
 
       <VideoSection
         video={product.video || null}
         heading={product.sectionHeadings?.video}
         stats={product.videoStats}
-        buttonText={product.buttonText}
-        currentProduct={product} // ← যোগ করো
+        buttonTexts={product.buttonTexts || {}} // ← এই লাইন
+        currentProduct={product}
       />
 
       <Reviews

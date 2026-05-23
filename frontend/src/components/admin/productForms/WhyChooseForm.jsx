@@ -22,19 +22,24 @@ const WhyChooseForm = ({ data, onChange }) => {
   const sectionHeadings = data.sectionHeadings || {};
   const orderBanner = data.orderBanner || {};
   
-  // বাটন টেক্সটের জন্য লোকাল স্টেট
-  const [localButtonText, setLocalButtonText] = useState(data.buttonText || "এখনই অর্ডার করুন");
+  // বাটন টেক্সটের জন্য লোকাল স্টেট - buttonTexts.whyChooseUs থেকে নিবে
+  const [localButtonText, setLocalButtonText] = useState(
+    data.buttonTexts?.whyChooseUs || ""
+  );
 
   // ডাটা পরিবর্তন হলে লোকাল স্টেট আপডেট
   useEffect(() => {
-    setLocalButtonText(data.buttonText || "এখনই অর্ডার করুন");
-  }, [data.buttonText]);
+    setLocalButtonText(data.buttonTexts?.whyChooseUs || "");
+  }, [data.buttonTexts?.whyChooseUs]);
 
   // বাটন টেক্সট পরিবর্তন হ্যান্ডলার
   const handleButtonTextChange = (e) => {
     const newValue = e.target.value;
     setLocalButtonText(newValue);
-    onChange("buttonText", newValue);
+    onChange("buttonTexts", { 
+      ...data.buttonTexts, 
+      whyChooseUs: newValue 
+    });
   };
 
   // আইকন লিস্ট
@@ -164,7 +169,7 @@ const WhyChooseForm = ({ data, onChange }) => {
         </div>
       </div>
 
-      {/* ========== বাটন টেক্সট সেটিংস (ফিক্স করা হয়েছে) ========== */}
+      {/* ========== বাটন টেক্সট সেটিংস ========== */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="bg-gradient-to-r from-rose-50 to-pink-50 px-4 py-3 border-b">
           <h3 className="text-md font-semibold text-gray-800 flex items-center gap-2">
@@ -179,11 +184,11 @@ const WhyChooseForm = ({ data, onChange }) => {
               type="text"
               value={localButtonText}
               onChange={handleButtonTextChange}
-              placeholder="এখনই অর্ডার করুন"
+              placeholder="এখনই অর্ডার করুন (খালি রাখতে পারেন)"
               className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-rose-400 focus:border-rose-400 outline-none transition"
             />
             <p className="text-xs text-gray-400 mt-1">
-              ⓘ এই টেক্সটটি Why Choose Us সেকশনের অর্ডার বাটনে দেখাবে
+              খালি রাখলে ডিফল্ট "এখনই অর্ডার করুন" দেখাবে
             </p>
             
             {/* প্রিভিউ */}

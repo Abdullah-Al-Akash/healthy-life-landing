@@ -24,11 +24,14 @@ const WhyChooseUs = ({
   stats = [],
   heading = {},
   orderBanner = {},
-  buttonText = "এখনই অর্ডার করুন",
+  buttonTexts = {},  // ← buttonTexts প্রপস
   currentProduct = null,
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+
+  // Why Choose Us সেকশনের বাটন টেক্সট buttonTexts থেকে নিচ্ছে
+  const whyChooseUsButtonText = buttonTexts?.whyChooseUs || "এখনই অর্ডার করুন";
 
   // ডিফল্ট হেডিং
   const defaultHeading = {
@@ -85,7 +88,7 @@ const WhyChooseUs = ({
       offerPrice: firstBanner.offerPrice || "২৯৯",
       originalPrice: firstBanner.originalPrice,
       image: firstBanner.image || "https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=1200",
-      buttonText: buttonText,
+      buttonText: whyChooseUsButtonText,
     });
     setIsDrawerOpen(true);
   };
@@ -155,7 +158,7 @@ const WhyChooseUs = ({
               onClick={handleOrderClick}
               className="bg-white text-rose-600 hover:bg-gray-100 px-8 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
             >
-              {buttonText}
+              {whyChooseUsButtonText}
             </button>
           </div>
 
