@@ -115,7 +115,7 @@ const WhyChooseUs = ({
 
   return (
     <>
-      <section className="py-16 md:py-24 bg-white">
+      <section className="">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* সেকশন হেডার */}
           <div className="text-center mb-12 md:mb-16">

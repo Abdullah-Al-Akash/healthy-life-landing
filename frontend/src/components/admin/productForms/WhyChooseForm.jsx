@@ -98,7 +98,7 @@ const WhyChooseForm = ({ data, onChange }) => {
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="bg-gradient-to-r from-rose-50 to-pink-50 px-4 py-3 border-b">
           <h3 className="text-md font-semibold text-gray-800 flex items-center gap-2">
-            <FaInfoCircle className="text-rose-500" /> Section Headings
+            <FaInfoCircle className="text-rose-500" /> Why Choose Us Headings
           </h3>
           <p className="text-xs text-gray-500 mt-0.5">এই সেকশনের শিরোনাম ও বিবরণ সেট করুন</p>
         </div>

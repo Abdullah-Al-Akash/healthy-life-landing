@@ -141,14 +141,14 @@ const BannerCarousel = ({ banners = [], config = {}, buttonTexts = {} }) => {
               </div>
             )}
 
-            {showTimer && targetDate && timerEnded && (
+            {/* {showTimer && targetDate && timerEnded && (
               <div className="mb-6">
                 <div className="inline-flex items-center gap-2 bg-red-50 px-6 py-3 rounded-2xl shadow-sm">
                   <span className="text-red-500 text-xl">⏰</span>
                   <span className="text-red-600 font-medium">অফার শেষ হয়েছে!</span>
                 </div>
               </div>
-            )}
+            )} */}
 
             <div className="relative inline-block">
               <div className="absolute -inset-2 bg-gradient-to-r from-rose-500 to-pink-500 rounded-full blur-xl opacity-50 animate-pulse"></div>

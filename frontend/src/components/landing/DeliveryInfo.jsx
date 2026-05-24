@@ -30,7 +30,7 @@ const DeliveryInfo = () => {
   ];
 
   return (
-    <section className="section bg-gradient-light">
+    <section className="section">
       <div className="container-custom">
         {/* সেকশন হেডার */}
         <div className="text-center mb-12">

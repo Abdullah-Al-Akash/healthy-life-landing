@@ -18,10 +18,12 @@ import Customers from "./pages/admin/Customers";
 import IpBlock from "./pages/admin/IpBlock";
 import Settings from "./pages/admin/Settings";
 import IncompleteOrders from "./pages/admin/IncompleteOrders";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         {/* পাবলিক রাউটস */}
         <Route path="/" element={<MainLayout><HomePage /></MainLayout>} />

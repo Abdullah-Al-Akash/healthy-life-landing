@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FiPlay, FiX, FiShoppingCart } from "react-icons/fi";
 import CheckoutDrawer from "./CheckoutDrawer";
+import { FaYoutube } from "react-icons/fa";
 
 const VideoSection = ({ 
   video = null, 
@@ -102,7 +103,7 @@ const VideoSection = ({
 
   return (
     <>
-      <section className="section bg-gradient-to-br from-gray-50 to-white">
+      <section className="section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* সেকশন হেডার - ডাইনামিক */}
