@@ -1,5 +1,6 @@
 const { getDB } = require('../config/db');
 const { ObjectId } = require('mongodb');
+const { sendOrderToCourier } = require('../services/courierService');
 
 // অর্ডার আইডি জেনারেট
 const generateOrderId = () => {
@@ -159,72 +160,114 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
-// @desc    Send to courier (Admin only)
+
 const sendToCourier = async (req, res) => {
+  console.log("📨 sendToCourier called with params:", req.params);
+  console.log("📨 Request body:", req.body);
+  
   try {
     const db = getDB();
     const { id } = req.params;
-    const { provider } = req.body;  // trackingId আর trackingUrl ফ্রন্টএন্ড থেকে না, ব্যাকএন্ড জেনারেট করবে
+    const { provider } = req.body;
     const user = req.user;
-    
+
+    console.log(`🚚 Sending order ${id} to ${provider} courier...`);
+
     const validProviders = ['steadfast', 'pathao'];
     if (!validProviders.includes(provider)) {
-      return res.status(400).json({ message: 'Invalid courier provider' });
+      console.log("❌ Invalid provider:", provider);
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid courier provider' 
+      });
     }
-    
+
     const order = await db.collection('orders').findOne({ _id: new ObjectId(id) });
     if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
+      console.log("❌ Order not found:", id);
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Order not found' 
+      });
     }
-    
-    // ট্র্যাকিং ID এবং URL জেনারেট
-    const trackingId = `${provider.toUpperCase()}-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-    const trackingUrl = provider === 'steadfast' 
-      ? `https://steadfast.com.bd/tracking/${trackingId}`
-      : `https://pathao.com/tracking/${trackingId}`;
-    
+
+    console.log("✅ Order found:", order.orderId);
+
+    // কুরিয়ার API তে অর্ডার পাঠানো
+    console.log("📤 Calling courier API...");
+    const courierResponse = await sendOrderToCourier(provider, {
+      orderId: order.orderId,
+      customerInfo: order.customerInfo,
+      totalPrice: order.totalPrice,
+      productTitle: order.productTitle,
+    });
+
+    console.log("📥 Courier API Response:", courierResponse);
+
+    if (!courierResponse.success) {
+      console.log("❌ Courier API failed:", courierResponse.message);
+      return res.status(400).json({
+        success: false,
+        message: courierResponse.message,
+        error: courierResponse.error,
+      });
+    }
+
+    // কুরিয়ার তথ্য সেভ
     const courierInfo = {
       provider,
-      trackingId,
-      trackingUrl,
+      trackingId: courierResponse.trackingId,
+      trackingUrl: courierResponse.trackingUrl,
       sentAt: new Date(),
       sentBy: user._id,
       sentByName: user.name,
+      apiResponse: courierResponse.fullResponse,
     };
-    
+
     const historyEntry = {
       status: 'approved',
-      note: `Order sent to ${provider} courier. Tracking ID: ${trackingId}`,
+      note: `Order sent to ${provider} courier. Tracking ID: ${courierResponse.trackingId}`,
       changedBy: user._id,
       changedByName: user.name,
       timestamp: new Date(),
     };
-    
+
     await db.collection('orders').updateOne(
       { _id: new ObjectId(id) },
-      { 
-        $set: { 
+      {
+        $set: {
           courierInfo,
-          orderStatus: 'approved',  // কুরিয়ারে পাঠানোর পর স্ট্যাটাস approved হবে
+          orderStatus: 'approved',
           updatedAt: new Date(),
         },
         $push: { history: historyEntry }
       }
     );
-    
+
+    console.log("✅ Order updated successfully in database");
+
     res.json({
       success: true,
-      message: `Order sent to ${provider} courier successfully`,
+      message: courierResponse.message,
       courierInfo: {
         provider,
-        trackingId,
-        trackingUrl,
+        trackingId: courierResponse.trackingId,
+        trackingUrl: courierResponse.trackingUrl,
       }
     });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("❌ Send to courier error:", error);
+    console.error("Error stack:", error.stack);
+    
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Internal server error',
+      error: error.toString(),
+    });
   }
 };
+
 
 // @desc    Update tracking info (Admin only)
 const updateTracking = async (req, res) => {
