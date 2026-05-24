@@ -15,6 +15,7 @@ import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
 import Customers from "./pages/admin/Customers";
+import IpBlock from "./pages/admin/IpBlock";
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
           <Route path="orders" element={<Orders />} />
           <Route path="users" element={<Users />} />
           <Route path="customers" element={<Customers />} />
+          <Route path="ip-block" element={<IpBlock />} />
         </Route>
       </Routes>
     </Router>

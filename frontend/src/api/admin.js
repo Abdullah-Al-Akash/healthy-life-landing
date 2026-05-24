@@ -35,4 +35,10 @@ export const adminApi = {
     privateApi.put(`/customers/${id}/status`, data),
   updateCustomer: (id, data) => privateApi.put(`/customers/${id}`, data),
   deleteCustomer: (id) => privateApi.delete(`/customers/${id}`),
+
+  // IP Block
+  getBlockedIPs: () => privateApi.get("/ip-block"),
+  blockIP: (data) => privateApi.post("/ip-block", data),
+  unblockIP: (id) => privateApi.delete(`/ip-block/${id}`),
+  getIPLogs: (ip) => privateApi.get(`/ip-block/logs?ip=${ip}`),
 };
