@@ -44,6 +44,8 @@ const userRoutes = require("./routes/userRoutes");
 const customerRoutes = require('./routes/customerRoutes');
 const ipBlockRoutes = require('./routes/ipBlockRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const incompleteOrderRoutes = require('./routes/incompleteOrderRoutes');
+
 
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
@@ -52,6 +54,8 @@ app.use("/api/users", userRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/ip-block', ipBlockRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/incomplete-orders', incompleteOrderRoutes);
+
 
 app.get("/", (req, res) => {
   res.json({ message: "API is running..." });

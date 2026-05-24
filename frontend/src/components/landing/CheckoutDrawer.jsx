@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { FaTimes, FaShoppingBag, FaTruck, FaShieldAlt, FaWhatsapp, FaCopy, FaCheck, FaExternalLinkAlt } from "react-icons/fa";
 import { orderApi } from "../../api/order";
+import { incompleteOrderApi } from "../../api/incompleteOrder";
 
 const CheckoutDrawer = ({ isOpen, onClose, product }) => {
   const [formData, setFormData] = useState({
@@ -16,6 +17,7 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [orderData, setOrderData] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [incompleteId, setIncompleteId] = useState(null);
 
   const deliveryCharge = {
     inside_dhaka: 60,
@@ -43,6 +45,43 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
     };
   }, [isOpen]);
 
+  // ফোন নাম্বার টাইপ করলে ইনকমপ্লিট অর্ডার ট্র্যাকিং
+  useEffect(() => {
+    const saveIncompleteOrder = async () => {
+      // শুধু ফোন নাম্বার থাকলেই সেভ করবো
+      if (formData.phone && formData.phone.length >= 11 && product) {
+        try {
+          const response = await incompleteOrderApi.create({
+            phone: formData.phone,
+            name: formData.name || "",
+            address: formData.address || "",
+            productId: product.id,
+            productTitle: product.title,
+            offerPrice: product.offerPrice,
+            deliveryArea: formData.deliveryArea,
+            note: formData.note,
+            step: formData.name ? (formData.address ? "address_filled" : "name_filled") : "phone_filled"
+          });
+          
+          if (response.data.success) {
+            setIncompleteId(response.data.incompleteId);
+          }
+        } catch (error) {
+          console.error("Error saving incomplete order:", error);
+        }
+      }
+    };
+    
+    // ডিবাউন্স: 1 সেকেন্ড পরে সেভ করবে
+    const timer = setTimeout(() => {
+      if (formData.phone && formData.phone.length >= 11) {
+        saveIncompleteOrder();
+      }
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, [formData.phone, formData.name, formData.address, product]);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setSubmitMessage({ type: "", text: "" });
@@ -61,6 +100,7 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
     setSubmitMessage({ type: "", text: "" });
     setShowSuccessModal(false);
     setOrderData(null);
+    setIncompleteId(null);
   };
 
   const copyOrderId = () => {
@@ -95,11 +135,14 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
       const response = await orderApi.create(orderDataToSend);
       
       if (response.data.success) {
+        // অর্ডার সফল হলে ইনকমপ্লিট অর্ডার ডিলিট করো
+        if (incompleteId) {
+          await incompleteOrderApi.delete(incompleteId);
+        }
+        
         setOrderData(response.data.order);
         setShowSuccessModal(true);
         setSubmitMessage({ type: "success", text: "অর্ডার সফলভাবে সম্পন্ন হয়েছে!" });
-        
-        // ড্রয়ার বন্ধ করবো না, মোডাল দেখাবো
       } else {
         setSubmitMessage({ type: "error", text: response.data.message || "অর্ডার করতে সমস্যা হয়েছে" });
       }
@@ -182,6 +225,13 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
           </div>
         )}
 
+        {/* ইনকমপ্লিট নোটিশ (যদি ফোন নাম্বার দিয়ে থাকে কিন্তু অর্ডার না করে) */}
+        {formData.phone && formData.phone.length >= 11 && !isSubmitting && (
+          <div className="mx-4 mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700 text-center">
+            💡 আপনার তথ্য সংরক্ষণ করা হয়েছে। পরবর্তীতে অর্ডার সম্পন্ন করতে পারেন।
+          </div>
+        )}
+
         {/* ফর্ম */}
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
@@ -212,6 +262,7 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
               placeholder="০১XXXXXXXXX"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition"
             />
+            <p className="text-xs text-gray-400 mt-1">ফোন নাম্বার দিলেই আপনার তথ্য সংরক্ষিত হবে</p>
           </div>
 
           <div>
@@ -229,6 +280,7 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
             />
           </div>
 
+          {/* বাকি ফর্ম একই থাকবে... */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               ডেলিভারি এলাকা <span className="text-rose-500">*</span>
@@ -383,7 +435,6 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
             className="bg-white rounded-2xl max-w-md w-full p-6 text-center animate-scaleIn"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* সাকসেস আইকন */}
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -393,7 +444,6 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
             <h3 className="text-2xl font-bold text-gray-800 mb-2">অর্ডার সফল হয়েছে!</h3>
             <p className="text-gray-500 text-sm mb-4">আপনার অর্ডারটি সফলভাবে সম্পন্ন হয়েছে।</p>
 
-            {/* অর্ডার আইডি */}
             <div className="bg-gray-50 rounded-xl p-4 mb-4">
               <p className="text-sm text-gray-500 mb-1">আপনার অর্ডার আইডি</p>
               <div className="flex items-center justify-center gap-2">
@@ -409,7 +459,6 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
               {copied && <p className="text-xs text-green-500 mt-1">কপি হয়েছে!</p>}
             </div>
 
-            {/* ট্র্যাকিং বাটন */}
             <button
               onClick={() => {
                 setShowSuccessModal(false);
@@ -421,7 +470,6 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
               অর্ডার ট্র্যাক করুন
             </button>
 
-            {/* ক্লোজ বাটন */}
             <button
               onClick={() => {
                 setShowSuccessModal(false);
