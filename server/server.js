@@ -40,11 +40,13 @@ const authRoutes = require("./routes/authRoutes");
 const productRoutes = require("./routes/productRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const userRoutes = require("./routes/userRoutes");
+const customerRoutes = require('./routes/customerRoutes');
 
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/users", userRoutes);
+app.use('/api/customers', customerRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "API is running..." });

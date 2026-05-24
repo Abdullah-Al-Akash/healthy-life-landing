@@ -51,12 +51,19 @@ const createOrder = async (req, res) => {
     
     const result = await db.collection('orders').insertOne(newOrder);
     
+    // ========== 🔥 এখানে কাস্টমার তৈরি/আপডেট করার কোড যোগ করো ==========
+    // কাস্টমার তৈরি বা আপডেট করার ফাংশন কল
+    const { updateOrCreateCustomer } = require('./customerController');
+    await updateOrCreateCustomer(newOrder);
+    // ====================================================================
+    
     res.status(201).json({
       success: true,
       message: 'Order placed successfully',
       order: { ...newOrder, _id: result.insertedId },
     });
   } catch (error) {
+    console.error('Create order error:', error);
     res.status(500).json({ message: error.message });
   }
 };

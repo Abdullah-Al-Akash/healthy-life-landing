@@ -14,6 +14,7 @@ import TrackOrder from "./pages/TrackOrder";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
+import Customers from "./pages/admin/Customers";
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
           <Route path="products" element={<Products />} />
           <Route path="orders" element={<Orders />} />
           <Route path="users" element={<Users />} />
+          <Route path="customers" element={<Customers />} />
         </Route>
       </Routes>
     </Router>

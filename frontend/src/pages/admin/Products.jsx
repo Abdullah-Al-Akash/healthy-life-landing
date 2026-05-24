@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   FaPlus, FaEdit, FaTrash, FaToggleOn, FaToggleOff, 
-  FaTimes, FaArrowLeft, FaArrowRight, FaSave, FaSpinner 
+  FaTimes, FaArrowLeft, FaArrowRight, FaSave, FaSpinner,
+  FaSearch, FaFilter, FaEye, FaCopy, FaCheck,
+  FaBox
 } from "react-icons/fa";
 import { adminApi } from "../../api/admin";
 import BasicInfoForm from "../../components/admin/productForms/BasicInfoForm";
@@ -13,11 +16,15 @@ import ReviewForm from "../../components/admin/productForms/ReviewForm";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [saving, setSaving] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [copiedId, setCopiedId] = useState(null);
 
   const [formData, setFormData] = useState({
     slug: "",
@@ -36,7 +43,6 @@ const Products = () => {
       faq: { title: "", highlightText: "", subtitle: "" }
     },
     orderBanner: { title: "", subtitle: "" },
-    // আলাদা আলাদা বাটন টেক্সট
     buttonTexts: {
       banner: "এখনই অর্ডার করুন",
       whyChooseUs: "এখনই অর্ডার করুন",
@@ -51,6 +57,10 @@ const Products = () => {
     fetchProducts();
   }, []);
 
+  useEffect(() => {
+    filterProducts();
+  }, [products, searchTerm, statusFilter]);
+
   const fetchProducts = async () => {
     try {
       const res = await adminApi.getProducts();
@@ -60,6 +70,25 @@ const Products = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const filterProducts = () => {
+    let filtered = [...products];
+    
+    if (searchTerm) {
+      filtered = filtered.filter(p => 
+        p.navTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.slug?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(p => 
+        statusFilter === "active" ? p.isActive : !p.isActive
+      );
+    }
+    
+    setFilteredProducts(filtered);
   };
 
   const handleDelete = async (id) => {
@@ -119,7 +148,7 @@ const Products = () => {
       reviews: [],
       contactInfo: { facebook: "", whatsapp: "", phone: "" },
       sectionHeadings: {
-        whyChooseUs: { title: "কেন বেছে নেবেন আমাদের?", highlightText: "আমাদের?", subtitle: "আমরা চাই আপনাকে সেরা সেবা ও মানসম্মত পণ্য দিতে।" },
+        whyChooseUs: { title: "কেন বেছে নেবেন আমাদের?", highlightText: "আমাদের?", subtitle: "আমরা চাই আপনাকে সেরা সেবা ও মানসম্মত পণ্য দিতে。" },
         video: { badge: "ভিডিও টিউটোরিয়াল", title: "পণ্য সম্পর্কে বিস্তারিত জানুন", highlightText: "বিস্তারিত জানুন", subtitle: "আমাদের পণ্য如何使用, এর উপকারিতা এবং ব্যবহার পদ্ধতি সম্পর্কে ভিডিওতে দেখুন" },
         reviews: { badge: "গ্রাহকদের মতামত", title: "তারা যা বলছেন", highlightText: "বলছেন", subtitle: "১০,০০০+ খুশি গ্রাহক আমাদের মূল্যায়ন করেছেন" },
         faq: { title: "প্রায়শই জিজ্ঞাসিত প্রশ্ন", highlightText: "প্রশ্ন", subtitle: "আপনার মনে হতে পারে এমন কিছু সাধারণ প্রশ্নের উত্তর জেনে নিন" }
@@ -158,77 +187,224 @@ const Products = () => {
     }
   };
 
+  const copySlug = async (slug) => {
+    await navigator.clipboard.writeText(slug);
+    setCopiedId(slug);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
   const totalSteps = 6;
   const progress = (currentStep / totalSteps) * 100;
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <FaSpinner className="animate-spin text-rose-500 text-3xl" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
       </div>
     );
   }
 
   return (
     <div className="p-4 md:p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Products Management</h1>
-        <button onClick={handleCreate} className="bg-rose-500 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+      {/* হেডার */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-rose-500 to-pink-500 bg-clip-text text-transparent">
+            Products Management
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">Manage your product catalog</p>
+        </div>
+        <button 
+          onClick={handleCreate} 
+          className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
+        >
           <FaPlus /> Add Product
         </button>
       </div>
 
-      {/* টেবিল */}
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
-        <table className="w-full min-w-[500px]">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">SL</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Title</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Slug</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Status</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((p, i) => (
-              <tr key={p._id} className="border-t hover:bg-gray-50">
-                <td className="px-4 py-3 text-sm">{i + 1}</td>
-                <td className="px-4 py-3 text-sm">{p.navTitle}</td>
-                <td className="px-4 py-3 text-sm text-gray-500">{p.slug}</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-1 text-xs rounded-full ${p.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                    {p.isActive ? "Active" : "Inactive"}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex gap-2">
-                    <button onClick={() => handleEdit(p)} className="text-blue-500"><FaEdit /></button>
-                    <button onClick={() => handleToggle(p._id)} className={p.isActive ? "text-green-500" : "text-gray-400"}><FaToggleOn size={18} /></button>
-                    <button onClick={() => handleDelete(p._id)} className="text-red-500"><FaTrash /></button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* সার্চ ও ফিল্টার */}
+      <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
+        <div className="relative flex-1 max-w-md">
+          <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by title or slug..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-rose-400 focus:border-rose-400 outline-none transition"
+          />
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setStatusFilter("all")}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              statusFilter === "all" 
+                ? "bg-rose-500 text-white shadow-md" 
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setStatusFilter("active")}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              statusFilter === "active" 
+                ? "bg-green-500 text-white shadow-md" 
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            Active
+          </button>
+          <button
+            onClick={() => setStatusFilter("inactive")}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              statusFilter === "inactive" 
+                ? "bg-gray-500 text-white shadow-md" 
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            Inactive
+          </button>
+        </div>
       </div>
+
+      {/* টেবিল ভিউ */}
+      <div className="bg-white rounded-xl shadow-md overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SL</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Slug</th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Banners</th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Reviews</th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {filteredProducts.map((product, index) => (
+                <tr key={product._id} className="hover:bg-gray-50 transition">
+                  <td className="px-4 py-3 text-sm text-gray-500">{index + 1}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-gradient-to-r from-rose-500 to-pink-500 rounded-lg flex items-center justify-center">
+                        <FaBox className="text-white text-xs" />
+                      </div>
+                      <span className="font-medium text-gray-800">{product.navTitle}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div 
+                      className="flex items-center gap-2 cursor-pointer group"
+                      onClick={() => copySlug(product.slug)}
+                    >
+                      <code className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded group-hover:bg-rose-50 transition">
+                        {product.slug}
+                      </code>
+                      {copiedId === product.slug ? (
+                        <FaCheck className="text-green-500 text-xs" />
+                      ) : (
+                        <FaCopy className="text-gray-400 group-hover:text-rose-500 text-xs" />
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <span className="text-sm text-gray-600">{product.banners?.length || 0}</span>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <span className="text-sm text-gray-600">{product.reviews?.length || 0}</span>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      product.isActive 
+                        ? "bg-green-100 text-green-700" 
+                        : "bg-gray-100 text-gray-500"
+                    }`}>
+                      {product.isActive ? "Active" : "Inactive"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => handleEdit(product)}
+                        className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition"
+                        title="Edit"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        onClick={() => handleToggle(product._id)}
+                        className={`p-2 rounded-lg transition ${
+                          product.isActive 
+                            ? "text-green-500 hover:bg-green-50" 
+                            : "text-gray-400 hover:bg-gray-100"
+                        }`}
+                        title={product.isActive ? "Deactivate" : "Activate"}
+                      >
+                        {product.isActive ? <FaToggleOn size={18} /> : <FaToggleOff size={18} />}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(product._id)}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                        title="Delete"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* খালি স্টেট */}
+      {filteredProducts.length === 0 && (
+        <div className="text-center py-16 bg-white rounded-2xl shadow-md mt-6">
+          <FaBox className="text-gray-300 text-5xl mx-auto mb-3" />
+          <p className="text-gray-500">No products found</p>
+          <button
+            onClick={handleCreate}
+            className="mt-4 text-rose-500 hover:text-rose-600 font-medium"
+          >
+            + Add your first product
+          </button>
+        </div>
+      )}
 
       {/* মোডাল */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+          >
             <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
               <div>
                 <h2 className="text-xl font-bold">{editingProduct ? "Edit Product" : "New Product"}</h2>
                 <p className="text-sm text-gray-500">Step {currentStep} of {totalSteps}</p>
               </div>
-              <button onClick={() => setShowModal(false)}><FaTimes className="text-gray-400" /></button>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
+                <FaTimes />
+              </button>
             </div>
 
             <div className="px-6 pt-4">
               <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div className="h-full bg-rose-500 transition-all" style={{ width: `${progress}%` }}></div>
+              </div>
+              <div className="flex justify-between text-xs text-gray-400 mt-2">
+                <span>Basic</span>
+                <span>Banner</span>
+                <span>Why Choose</span>
+                <span>Video</span>
+                <span>FAQ</span>
+                <span>Reviews</span>
               </div>
             </div>
 
@@ -257,24 +433,26 @@ const Products = () => {
               <button
                 onClick={() => setCurrentStep(p => p - 1)}
                 disabled={currentStep === 1}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50"
+                className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50 transition"
               >
                 ← Previous
               </button>
               <div className="flex gap-3">
-                <button onClick={() => setShowModal(false)} className="px-4 py-2 border rounded-lg">Cancel</button>
+                <button onClick={() => setShowModal(false)} className="px-4 py-2 border rounded-lg hover:bg-gray-50 transition">
+                  Cancel
+                </button>
                 {currentStep === totalSteps ? (
-                  <button onClick={handleSave} className="bg-rose-500 text-white px-6 py-2 rounded-lg flex items-center gap-2">
+                  <button onClick={handleSave} disabled={saving} className="bg-rose-500 text-white px-6 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50 hover:bg-rose-600 transition">
                     {saving ? <FaSpinner className="animate-spin" /> : <FaSave />} Save
                   </button>
                 ) : (
-                  <button onClick={() => setCurrentStep(p => p + 1)} className="bg-rose-500 text-white px-6 py-2 rounded-lg">
-                    Next →
+                  <button onClick={() => setCurrentStep(p => p + 1)} className="bg-rose-500 text-white px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-rose-600 transition">
+                    Next → <FaArrowRight size={14} />
                   </button>
                 )}
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
     </div>

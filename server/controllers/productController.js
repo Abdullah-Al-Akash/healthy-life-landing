@@ -1,12 +1,22 @@
 const { getDB } = require('../config/db');
 const { ObjectId } = require('mongodb');
 
-// @desc    Get all products
+// @desc    Get all products (Admin sees all, Public sees only active)
 // @route   GET /api/products
 const getProducts = async (req, res) => {
   try {
     const db = getDB();
-    const products = await db.collection('products').find({ isActive: true }).toArray();
+    
+    // চেক করো রিকোয়েস্টটা অ্যাডমিন প্যানেল থেকে আসছে কিনা
+    const isAdminRequest = req.headers.authorization && req.headers.authorization.startsWith('Bearer');
+    
+    // অ্যাডমিন হলে সব প্রোডাক্ট, না হলে শুধু active প্রোডাক্ট
+    let query = {};
+    if (!isAdminRequest) {
+      query = { isActive: true };
+    }
+    
+    const products = await db.collection('products').find(query).toArray();
     res.json({
       success: true,
       count: products.length,

@@ -24,5 +24,15 @@ export const adminApi = {
   // adminApi.js - Orders সেকশনে যোগ করো
   updateCustomerInfo: (id, customerInfo) =>
     privateApi.put(`/orders/${id}/customer`, { customerInfo }),
-  sendToCourier: (id, provider) => privateApi.post(`/orders/${id}/courier`, { provider }),
+  sendToCourier: (id, provider) =>
+    privateApi.post(`/orders/${id}/courier`, { provider }),
+
+  // Customers
+  getCustomers: () => privateApi.get("/customers"),
+  getCustomerByPhone: (phone) => privateApi.get(`/customers/${phone}`),
+  getCustomerOrders: (phone) => privateApi.get(`/customers/${phone}/orders`),
+  updateCustomerStatus: (id, data) =>
+    privateApi.put(`/customers/${id}/status`, data),
+  updateCustomer: (id, data) => privateApi.put(`/customers/${id}`, data),
+  deleteCustomer: (id) => privateApi.delete(`/customers/${id}`),
 };
