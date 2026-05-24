@@ -48,4 +48,8 @@ export const adminApi = {
   // Dashboard
   getDashboardStats: (params) => privateApi.get("/dashboard/stats", { params }),
   getOrderSummary: () => privateApi.get("/dashboard/orders/summary"),
+
+  // Incomplete Orders
+  getIncompleteOrders: () => privateApi.get("/incomplete-orders"),
+  deleteIncompleteOrder: (id) => privateApi.delete(`/incomplete-orders/${id}`),
 };

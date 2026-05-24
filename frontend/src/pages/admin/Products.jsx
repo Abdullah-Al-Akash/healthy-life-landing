@@ -4,7 +4,7 @@ import {
   FaPlus, FaEdit, FaTrash, FaToggleOn, FaToggleOff, 
   FaTimes, FaArrowLeft, FaArrowRight, FaSave, FaSpinner,
   FaSearch, FaFilter, FaEye, FaCopy, FaCheck,
-  FaBox
+  FaBox, FaStar, FaImage, FaChartLine
 } from "react-icons/fa";
 import { adminApi } from "../../api/admin";
 import BasicInfoForm from "../../components/admin/productForms/BasicInfoForm";
@@ -117,7 +117,7 @@ const Products = () => {
       contactInfo: product.contactInfo || { facebook: "", whatsapp: "", phone: "" },
       sectionHeadings: product.sectionHeadings || {
         whyChooseUs: { title: "কেন বেছে নেবেন আমাদের?", highlightText: "আমাদের?", subtitle: "আমরা চাই আপনাকে সেরা সেবা ও মানসম্মত পণ্য দিতে।" },
-        video: { badge: "ভিডিও টিউটোরিয়াল", title: "পণ্য সম্পর্কে বিস্তারিত জানুন", highlightText: "বিস্তারিত জানুন", subtitle: "আমাদের পণ্য如何使用, এর উপকারিতা এবং ব্যবহার পদ্ধতি সম্পর্কে ভিডিওতে দেখুন" },
+        video: { badge: "ভিডিও টিউটোরিয়ал", title: "পণ্য সম্পর্কে বিস্তারিত জানুন", highlightText: "বিস্তারিত জানুন", subtitle: "আমাদের পণ্য如何使用, এর উপকারিতা এবং ব্যবহার পদ্ধতি সম্পর্কে ভিডিওতে দেখুন" },
         reviews: { badge: "গ্রাহকদের মতামত", title: "তারা যা বলছেন", highlightText: "বলছেন", subtitle: "১০,০০০+ খুশি গ্রাহক আমাদের মূল্যায়ন করেছেন" },
         faq: { title: "প্রায়শই জিজ্ঞাসিত প্রশ্ন", highlightText: "প্রশ্ন", subtitle: "আপনার মনে হতে পারে এমন কিছু সাধারণ প্রশ্নের উত্তর জেনে নিন" }
       },
@@ -198,14 +198,14 @@ const Products = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
+      <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="p-4 md:p-6">
+    <div className="p-4 md:p-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* হেডার */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
@@ -214,12 +214,61 @@ const Products = () => {
           </h1>
           <p className="text-sm text-gray-500 mt-1">Manage your product catalog</p>
         </div>
+        
         <button 
           onClick={handleCreate} 
           className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
         >
           <FaPlus /> Add Product
         </button>
+      </div>
+
+      {/* স্ট্যাটাস কার্ড */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-4 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-blue-100 text-sm">Total Products</p>
+              <p className="text-2xl font-bold">{products.length}</p>
+            </div>
+            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+              <FaBox className="text-xl" />
+            </div>
+          </div>
+        </div>
+        <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-4 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-green-100 text-sm">Active Products</p>
+              <p className="text-2xl font-bold">{products.filter(p => p.isActive).length}</p>
+            </div>
+            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+              <FaCheck className="text-xl" />
+            </div>
+          </div>
+        </div>
+        <div className="bg-gradient-to-r from-amber-500 to-amber-600 rounded-xl p-4 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-amber-100 text-sm">Inactive Products</p>
+              <p className="text-2xl font-bold">{products.filter(p => !p.isActive).length}</p>
+            </div>
+            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+              <FaTimes className="text-xl" />
+            </div>
+          </div>
+        </div>
+        <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-4 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-purple-100 text-sm">Total Banners</p>
+              <p className="text-2xl font-bold">{products.reduce((sum, p) => sum + (p.banners?.length || 0), 0)}</p>
+            </div>
+            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+              <FaImage className="text-xl" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* সার্চ ও ফিল্টার */}
@@ -240,7 +289,7 @@ const Products = () => {
             className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
               statusFilter === "all" 
                 ? "bg-rose-500 text-white shadow-md" 
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
             }`}
           >
             All
@@ -250,7 +299,7 @@ const Products = () => {
             className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
               statusFilter === "active" 
                 ? "bg-green-500 text-white shadow-md" 
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
             }`}
           >
             Active
@@ -260,7 +309,7 @@ const Products = () => {
             className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
               statusFilter === "inactive" 
                 ? "bg-gray-500 text-white shadow-md" 
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
             }`}
           >
             Inactive
@@ -269,13 +318,13 @@ const Products = () => {
       </div>
 
       {/* টেবিল ভিউ */}
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SL</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Slug</th>
                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Banners</th>
                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Reviews</th>
@@ -283,79 +332,94 @@ const Products = () => {
                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredProducts.map((product, index) => (
-                <tr key={product._id} className="hover:bg-gray-50 transition">
-                  <td className="px-4 py-3 text-sm text-gray-500">{index + 1}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gradient-to-r from-rose-500 to-pink-500 rounded-lg flex items-center justify-center">
-                        <FaBox className="text-white text-xs" />
+            <tbody className="divide-y divide-gray-100">
+              <AnimatePresence>
+                {filteredProducts.map((product, index) => (
+                  <motion.tr
+                    key={product._id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.03 }}
+                    className="hover:bg-gray-50 transition"
+                  >
+                    <td className="px-4 py-3 text-sm text-gray-500">{index + 1}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gradient-to-r from-rose-500 to-pink-500 rounded-lg flex items-center justify-center">
+                          <FaBox className="text-white text-xs" />
+                        </div>
+                        <span className="font-medium text-gray-800">{product.navTitle}</span>
                       </div>
-                      <span className="font-medium text-gray-800">{product.navTitle}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div 
-                      className="flex items-center gap-2 cursor-pointer group"
-                      onClick={() => copySlug(product.slug)}
-                    >
-                      <code className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded group-hover:bg-rose-50 transition">
-                        {product.slug}
-                      </code>
-                      {copiedId === product.slug ? (
-                        <FaCheck className="text-green-500 text-xs" />
-                      ) : (
-                        <FaCopy className="text-gray-400 group-hover:text-rose-500 text-xs" />
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <span className="text-sm text-gray-600">{product.banners?.length || 0}</span>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <span className="text-sm text-gray-600">{product.reviews?.length || 0}</span>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      product.isActive 
-                        ? "bg-green-100 text-green-700" 
-                        : "bg-gray-100 text-gray-500"
-                    }`}>
-                      {product.isActive ? "Active" : "Inactive"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-center gap-2">
-                      <button
-                        onClick={() => handleEdit(product)}
-                        className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition"
-                        title="Edit"
+                    </td>
+                    <td className="px-4 py-3">
+                      <div 
+                        className="flex items-center gap-2 cursor-pointer group"
+                        onClick={() => copySlug(product.slug)}
                       >
-                        <FaEdit />
-                      </button>
+                        <code className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded group-hover:bg-rose-50 transition">
+                          {product.slug}
+                        </code>
+                        {copiedId === product.slug ? (
+                          <FaCheck className="text-green-500 text-xs" />
+                        ) : (
+                          <FaCopy className="text-gray-400 group-hover:text-rose-500 text-xs" />
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm">
+                        <FaImage size={12} /> {product.banners?.length || 0}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 rounded-lg text-sm">
+                        <FaStar size={12} /> {product.reviews?.length || 0}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
                       <button
                         onClick={() => handleToggle(product._id)}
-                        className={`p-2 rounded-lg transition ${
+                        className={`px-3 py-1 text-xs rounded-full transition ${
                           product.isActive 
-                            ? "text-green-500 hover:bg-green-50" 
-                            : "text-gray-400 hover:bg-gray-100"
+                            ? "bg-green-100 text-green-700 hover:bg-green-200" 
+                            : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                         }`}
-                        title={product.isActive ? "Deactivate" : "Activate"}
                       >
-                        {product.isActive ? <FaToggleOn size={18} /> : <FaToggleOff size={18} />}
+                        {product.isActive ? "Active" : "Inactive"}
                       </button>
-                      <button
-                        onClick={() => handleDelete(product._id)}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
-                        title="Delete"
-                      >
-                        <FaTrash />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => handleEdit(product)}
+                          className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition"
+                          title="Edit"
+                        >
+                          <FaEdit size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleToggle(product._id)}
+                          className={`p-1.5 rounded-lg transition ${
+                            product.isActive 
+                              ? "text-green-500 hover:bg-green-50" 
+                              : "text-gray-400 hover:bg-gray-100"
+                          }`}
+                          title={product.isActive ? "Deactivate" : "Activate"}
+                        >
+                          {product.isActive ? <FaToggleOn size={14} /> : <FaToggleOff size={14} />}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(product._id)}
+                          className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition"
+                          title="Delete"
+                        >
+                          <FaTrash size={14} />
+                        </button>
+                      </div>
+                    </td>
+                    </motion.tr>
+                ))}
+              </AnimatePresence>
             </tbody>
           </table>
         </div>
@@ -375,23 +439,26 @@ const Products = () => {
         </div>
       )}
 
-      {/* মোডাল */}
+      {/* অ্যাড/এডিট মোডাল */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowModal(false)}>
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
-              <div>
-                <h2 className="text-xl font-bold">{editingProduct ? "Edit Product" : "New Product"}</h2>
-                <p className="text-sm text-gray-500">Step {currentStep} of {totalSteps}</p>
+            <div className="sticky top-0 bg-gradient-to-r from-rose-500 to-pink-500 px-6 py-4 text-white rounded-t-2xl">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-bold">{editingProduct ? "Edit Product" : "Create New Product"}</h2>
+                  <p className="text-rose-100 text-sm">Step {currentStep} of {totalSteps}</p>
+                </div>
+                <button onClick={() => setShowModal(false)} className="text-white hover:text-rose-100 transition">
+                  <FaTimes />
+                </button>
               </div>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
-                <FaTimes />
-              </button>
             </div>
 
             <div className="px-6 pt-4">
@@ -399,12 +466,12 @@ const Products = () => {
                 <div className="h-full bg-rose-500 transition-all" style={{ width: `${progress}%` }}></div>
               </div>
               <div className="flex justify-between text-xs text-gray-400 mt-2">
-                <span>Basic</span>
-                <span>Banner</span>
-                <span>Why Choose</span>
-                <span>Video</span>
-                <span>FAQ</span>
-                <span>Reviews</span>
+                <span className={currentStep >= 1 ? "text-rose-500" : ""}>Basic</span>
+                <span className={currentStep >= 2 ? "text-rose-500" : ""}>Banner</span>
+                <span className={currentStep >= 3 ? "text-rose-500" : ""}>Why Choose</span>
+                <span className={currentStep >= 4 ? "text-rose-500" : ""}>Video</span>
+                <span className={currentStep >= 5 ? "text-rose-500" : ""}>FAQ</span>
+                <span className={currentStep >= 6 ? "text-rose-500" : ""}>Reviews</span>
               </div>
             </div>
 
@@ -433,20 +500,21 @@ const Products = () => {
               <button
                 onClick={() => setCurrentStep(p => p - 1)}
                 disabled={currentStep === 1}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50 transition"
+                className="px-4 py-2 border border-gray-300 rounded-xl disabled:opacity-50 hover:bg-gray-50 transition"
               >
                 ← Previous
               </button>
               <div className="flex gap-3">
-                <button onClick={() => setShowModal(false)} className="px-4 py-2 border rounded-lg hover:bg-gray-50 transition">
+                <button onClick={() => setShowModal(false)} className="px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 transition">
                   Cancel
                 </button>
                 {currentStep === totalSteps ? (
-                  <button onClick={handleSave} disabled={saving} className="bg-rose-500 text-white px-6 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50 hover:bg-rose-600 transition">
-                    {saving ? <FaSpinner className="animate-spin" /> : <FaSave />} Save
+                  <button onClick={handleSave} disabled={saving} className="bg-gradient-to-r from-rose-500 to-pink-500 text-white px-6 py-2 rounded-xl flex items-center gap-2 disabled:opacity-50 hover:from-rose-600 hover:to-pink-600 transition">
+                    {saving ? <FaSpinner className="animate-spin" /> : <FaSave />}
+                    {saving ? 'Saving...' : 'Save Product'}
                   </button>
                 ) : (
-                  <button onClick={() => setCurrentStep(p => p + 1)} className="bg-rose-500 text-white px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-rose-600 transition">
+                  <button onClick={() => setCurrentStep(p => p + 1)} className="bg-gradient-to-r from-rose-500 to-pink-500 text-white px-6 py-2 rounded-xl flex items-center gap-2 hover:from-rose-600 hover:to-pink-600 transition">
                     Next → <FaArrowRight size={14} />
                   </button>
                 )}

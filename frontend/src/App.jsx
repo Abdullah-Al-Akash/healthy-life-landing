@@ -17,6 +17,7 @@ import "swiper/css/navigation";
 import Customers from "./pages/admin/Customers";
 import IpBlock from "./pages/admin/IpBlock";
 import Settings from "./pages/admin/Settings";
+import IncompleteOrders from "./pages/admin/IncompleteOrders";
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
           <Route path="customers" element={<Customers />} />
           <Route path="ip-block" element={<IpBlock />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="incomplete-orders" element={<IncompleteOrders />} />
         </Route>
       </Routes>
     </Router>
