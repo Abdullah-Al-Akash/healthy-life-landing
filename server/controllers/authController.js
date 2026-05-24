@@ -17,17 +17,14 @@ const registerUser = async (req, res) => {
     const { name, email, password } = req.body;
     const db = getDB();
 
-    // চেক ইউজার ইতিমধ্যে আছে কিনা
     const userExists = await db.collection('users').findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // পাসওয়ার্ড হ্যাশ
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // নিউ ইউজার ক্রিয়েট
     const newUser = {
       name,
       email,
@@ -62,21 +59,18 @@ const loginUser = async (req, res) => {
     const { email, password } = req.body;
     const db = getDB();
 
-    // ইউজার খুঁজে বের করো
     const user = await db.collection('users').findOne({ email });
     
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // পাসওয়ার্ড মিলাও
     const isPasswordMatch = await bcrypt.compare(password, user.password);
     
     if (!isPasswordMatch) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // লগইন সফল
     res.json({
       success: true,
       message: 'Login successful',
@@ -118,7 +112,6 @@ const getAllUsers = async (req, res) => {
   try {
     const db = getDB();
     
-    // ডেভেলপার ইউজার হাইড করো (সুপার এডমিন ছাড়া)
     let query = {};
     if (req.user.role !== 'super_admin' && req.user.role !== 'developer') {
       query = { isHidden: { $ne: true } };
@@ -139,6 +132,52 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+// ========== 🔥 নতুন ফাংশন যোগ করো ==========
+
+// @desc    Create new admin user (Super Admin only)
+// @route   POST /api/auth/users/admin
+const createAdmin = async (req, res) => {
+  try {
+    const db = getDB();
+    const { name, email, password, role } = req.body;
+    
+    const userExists = await db.collection('users').findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+    
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    
+    const newUser = {
+      name,
+      email,
+      password: hashedPassword,
+      role: role || 'admin',
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    const result = await db.collection('users').insertOne(newUser);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Admin user created successfully',
+      user: {
+        _id: result.insertedId,
+        name,
+        email,
+        role: role || 'admin',
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ==========================================
+
 // @desc    Update user role (Super Admin only)
 // @route   PUT /api/auth/users/:id/role
 const updateUserRole = async (req, res) => {
@@ -147,25 +186,21 @@ const updateUserRole = async (req, res) => {
     const { role } = req.body;
     const db = getDB();
 
-    // ভ্যালিড রোল চেক
     const validRoles = ['user', 'admin', 'super_admin'];
     if (!validRoles.includes(role)) {
       return res.status(400).json({ message: 'Invalid role' });
     }
 
-    // ইউজার খুঁজে বের করো
     const user = await db.collection('users').findOne({ _id: new ObjectId(id) });
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // ডেভেলপারের রোল পরিবর্তন করা যাবে না
     if (user.role === 'developer') {
       return res.status(403).json({ message: 'Cannot change developer role' });
     }
 
-    // রোল আপডেট
     await db.collection('users').updateOne(
       { _id: new ObjectId(id) },
       { $set: { role, updatedAt: new Date() } }
@@ -193,7 +228,6 @@ const deleteUser = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // ডেভেলপার বা সুপার এডমিন ডিলিট করা যাবে না
     if (user.role === 'developer' || user.role === 'super_admin') {
       return res.status(403).json({ message: 'Cannot delete this user' });
     }
@@ -209,11 +243,62 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+const updateProfile = async (req, res) => {
+  try {
+    const db = getDB();
+    const { name, email } = req.body;
+    const userId = req.user._id;
+    
+    await db.collection('users').updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { name, email, updatedAt: new Date() } }
+    );
+    
+    res.json({ success: true, message: 'Profile updated successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Change password
+// @route   PUT /api/auth/change-password
+const changePassword = async (req, res) => {
+  try {
+    const db = getDB();
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user._id;
+    
+    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+    
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+    
+    await db.collection('users').updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { password: hashedPassword, updatedAt: new Date() } }
+    );
+    
+    res.json({ success: true, message: 'Password changed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   getCurrentUser,
   getAllUsers,
+  createAdmin,        // ← যোগ করো
   updateUserRole,
   deleteUser,
+  updateProfile,
+  changePassword,
 };

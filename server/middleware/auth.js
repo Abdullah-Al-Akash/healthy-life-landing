@@ -34,7 +34,7 @@ const protect = async (req, res, next) => {
   }
 };
 
-// অ্যাডমিন মিডলওয়্যার (সুপার এডমিন + ডেভেলপার)
+// অ্যাডমিন মিডলওয়্যার (সুপার এডমিন + ডেভেলপার) - সব এক্সেস
 const admin = (req, res, next) => {
   if (req.user && (req.user.role === 'super_admin' || req.user.role === 'developer')) {
     next();
@@ -52,4 +52,13 @@ const superAdminOnly = (req, res, next) => {
   }
 };
 
-module.exports = { protect, admin, superAdminOnly };
+// শুধু ডেভেলপার (ভবিষ্যতে দরকার হলে)
+const developerOnly = (req, res, next) => {
+  if (req.user && req.user.role === 'developer') {
+    next();
+  } else {
+    res.status(403).json({ message: 'Access denied. Developer only.' });
+  }
+};
+
+module.exports = { protect, admin, superAdminOnly, developerOnly };
