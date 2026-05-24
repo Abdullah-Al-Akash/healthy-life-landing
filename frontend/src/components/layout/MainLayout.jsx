@@ -1,5 +1,6 @@
   import Navbar from "./Navbar";
   import Footer from "./Footer";
+import WhatsAppFloating from "../WhatsAppFloating";
 
 
   const MainLayout = ({ children }) => {
@@ -9,6 +10,7 @@
         <main className="flex-grow pt-20">
           {children}
         </main>
+        <WhatsAppFloating></WhatsAppFloating>
         <Footer />
       </div>
     );
