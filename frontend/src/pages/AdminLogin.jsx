@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaUserShield } from 'react-icons/fa';
-import axios from 'axios';
+import { publicApi } from '../api/client';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -24,15 +24,17 @@ const AdminLogin = () => {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', formData);
-      
+      const response = await publicApi.post('/auth/login', {
+        email: formData.email,
+        password: formData.password
+      });
+
       if (response.data.success) {
-        // টোকেন localStorage এ সেভ
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
         
-        // রোল চেক করে রিডাইরেক্ট
-        if (response.data.user.role === 'super_admin' || response.data.user.role === 'developer' || response.data.user.role === 'admin') {
+        const userRole = response.data.user.role;
+        if (userRole === 'super_admin' || userRole === 'developer' || userRole === 'admin') {
           navigate('/admin/dashboard');
         } else {
           setError('You are not authorized to access admin panel');
@@ -48,25 +50,18 @@ const AdminLogin = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        {/* লোগো ও হেডার */}
         <div className="text-center">
           <div className="flex justify-center">
             <div className="w-20 h-20 bg-gradient-to-r from-rose-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
               <FaUserShield className="text-white text-4xl" />
             </div>
           </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-white">
-            Admin Panel
-          </h2>
-          <p className="mt-2 text-sm text-gray-400">
-            Sign in to your account to manage everything
-          </p>
+          <h2 className="mt-6 text-3xl font-extrabold text-white">Admin Panel</h2>
+          <p className="mt-2 text-sm text-gray-400">Sign in to your account to manage everything</p>
         </div>
 
-        {/* লগইন ফর্ম */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
-            {/* ইমেইল */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
                 Email Address
@@ -88,7 +83,6 @@ const AdminLogin = () => {
               </div>
             </div>
 
-            {/* পাসওয়ার্ড */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">
                 Password
@@ -122,14 +116,12 @@ const AdminLogin = () => {
             </div>
           </div>
 
-          {/* এরর মেসেজ */}
           {error && (
             <div className="rounded-lg bg-red-500/10 border border-red-500 p-3">
               <p className="text-red-500 text-sm text-center">{error}</p>
             </div>
           )}
 
-          {/* লগইন বাটন */}
           <button
             type="submit"
             disabled={loading}
@@ -145,7 +137,6 @@ const AdminLogin = () => {
             )}
           </button>
 
-          {/* ডেমো ক্রেডেনশিয়াল */}
           <div className="text-center text-xs text-gray-400">
             <p>Demo Credentials:</p>
             <p>Email: admin@herbalcare.com</p>
