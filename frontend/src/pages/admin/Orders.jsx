@@ -231,13 +231,15 @@ const Orders = () => {
                         <div className="flex flex-col">
                           <span className="text-sm font-medium text-gray-800">{order.customerInfo?.name}</span>
                           <span className="text-xs text-gray-400">{order.customerInfo?.phone}</span>
+                          
                         </div>
                        </td>
                       <td className="px-4 py-3">
-                        <span className="text-sm text-gray-600">{order.productTitle}</span>
+                        <span className="text-sm text-gray-600">{order.productTitle}</span> <br/>
+                        <span className="text-sm font-semibold text-rose-600">{formatPrice(order.totalPrice)}</span>
                        </td>
                       <td className="px-4 py-3">
-                        <span className="text-sm font-semibold text-rose-600">{formatPrice(order.totalPrice)}</span>
+                        <span className="text-sm font-semibold text-rose-600">{order.ipAddress}</span>
                        </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">

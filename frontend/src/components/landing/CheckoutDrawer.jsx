@@ -1,7 +1,17 @@
 import { useState, useEffect } from "react";
-import { FaTimes, FaShoppingBag, FaTruck, FaShieldAlt, FaWhatsapp, FaCopy, FaCheck, FaExternalLinkAlt } from "react-icons/fa";
+import {
+  FaTimes,
+  FaShoppingBag,
+  FaTruck,
+  FaShieldAlt,
+  FaWhatsapp,
+  FaCopy,
+  FaCheck,
+  FaExternalLinkAlt,
+} from "react-icons/fa";
 import { orderApi } from "../../api/order";
 import { incompleteOrderApi } from "../../api/incompleteOrder";
+import fbPixel from "../../utils/fbPixel";
 
 const CheckoutDrawer = ({ isOpen, onClose, product }) => {
   const [formData, setFormData] = useState({
@@ -26,6 +36,13 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
 
   const [totalPrice, setTotalPrice] = useState(0);
 
+  // ড্রয়ার ওপেন হলে (চেকআউট শুরু)
+  useEffect(() => {
+    if (isOpen && product) {
+      fbPixel.initiateCheckout();
+    }
+  }, [isOpen, product]);
+
   useEffect(() => {
     if (product) {
       const productPrice = parseInt(product.offerPrice) || 0;
@@ -45,11 +62,16 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
     };
   }, [isOpen]);
 
-  // ফোন নাম্বার টাইপ করলে ইনকমপ্লিট অর্ডার ট্র্যাকিং
+  // ফোন নাম্বার টাইপ করলে ইনকমপ্লিট অর্ডার ট্র্যাকিং ও লিড ট্র্যাক
   useEffect(() => {
     const saveIncompleteOrder = async () => {
-      // শুধু ফোন নাম্বার থাকলেই সেভ করবো
       if (formData.phone && formData.phone.length >= 11 && product) {
+        // ✅ Lead ইভেন্ট ট্র্যাক (ফেসবুক পিক্সেল)
+        fbPixel.lead({
+          name: formData.name || "Customer",
+          phone: formData.phone,
+        });
+
         try {
           const response = await incompleteOrderApi.create({
             phone: formData.phone,
@@ -60,9 +82,13 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
             offerPrice: product.offerPrice,
             deliveryArea: formData.deliveryArea,
             note: formData.note,
-            step: formData.name ? (formData.address ? "address_filled" : "name_filled") : "phone_filled"
+            step: formData.name
+              ? formData.address
+                ? "address_filled"
+                : "name_filled"
+              : "phone_filled",
           });
-          
+
           if (response.data.success) {
             setIncompleteId(response.data.incompleteId);
           }
@@ -71,14 +97,13 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
         }
       }
     };
-    
-    // ডিবাউন্স: 1 সেকেন্ড পরে সেভ করবে
+
     const timer = setTimeout(() => {
       if (formData.phone && formData.phone.length >= 11) {
         saveIncompleteOrder();
       }
     }, 1000);
-    
+
     return () => clearTimeout(timer);
   }, [formData.phone, formData.name, formData.address, product]);
 
@@ -133,24 +158,40 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
 
     try {
       const response = await orderApi.create(orderDataToSend);
-      
+
       if (response.data.success) {
+        // ✅ Purchase ইভেন্ট ট্র্যাক (ফেসবুক পিক্সেল)
+        fbPixel.purchase({
+          orderId: response.data.order.orderId,
+          productId: product.id,
+          productTitle: product.title,
+          totalPrice: totalPrice,
+        });
+
         // অর্ডার সফল হলে ইনকমপ্লিট অর্ডার ডিলিট করো
         if (incompleteId) {
           await incompleteOrderApi.delete(incompleteId);
         }
-        
+
         setOrderData(response.data.order);
         setShowSuccessModal(true);
-        setSubmitMessage({ type: "success", text: "অর্ডার সফলভাবে সম্পন্ন হয়েছে!" });
+        setSubmitMessage({
+          type: "success",
+          text: "অর্ডার সফলভাবে সম্পন্ন হয়েছে!",
+        });
       } else {
-        setSubmitMessage({ type: "error", text: response.data.message || "অর্ডার করতে সমস্যা হয়েছে" });
+        setSubmitMessage({
+          type: "error",
+          text: response.data.message || "অর্ডার করতে সমস্যা হয়েছে",
+        });
       }
     } catch (error) {
       console.error("Order error:", error);
-      setSubmitMessage({ 
-        type: "error", 
-        text: error.response?.data?.message || "সার্ভারে সমস্যা হয়েছে। পরে আবার চেষ্টা করুন।" 
+      setSubmitMessage({
+        type: "error",
+        text:
+          error.response?.data?.message ||
+          "সার্ভারে সমস্যা হয়েছে। পরে আবার চেষ্টা করুন।",
       });
     } finally {
       setIsSubmitting(false);
@@ -184,18 +225,23 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
               <p className="text-xs text-gray-500">ক্যাশ অন ডেলিভারি</p>
             </div>
           </div>
-          <button onClick={handleClose} className="p-2 hover:bg-gray-100 rounded-full">
+          <button
+            onClick={handleClose}
+            className="p-2 hover:bg-gray-100 rounded-full"
+          >
             <FaTimes className="text-gray-500" />
           </button>
         </div>
 
         {/* সাকসেস/এরর মেসেজ */}
         {submitMessage.text && !showSuccessModal && (
-          <div className={`m-4 p-3 rounded-lg text-sm ${
-            submitMessage.type === "success" 
-              ? "bg-green-50 text-green-700 border border-green-200" 
-              : "bg-red-50 text-red-700 border border-red-200"
-          }`}>
+          <div
+            className={`m-4 p-3 rounded-lg text-sm ${
+              submitMessage.type === "success"
+                ? "bg-green-50 text-green-700 border border-green-200"
+                : "bg-red-50 text-red-700 border border-red-200"
+            }`}
+          >
             {submitMessage.text}
           </div>
         )}
@@ -205,16 +251,25 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
           <div className="p-4 bg-gradient-to-r from-rose-50 to-pink-50 border-b border-rose-100">
             <div className="flex gap-3">
               <img
-                src={product.image || "https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=1200"}
+                src={
+                  product.image ||
+                  "https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=1200"
+                }
                 alt={product.title}
                 className="w-16 h-16 rounded-lg object-cover"
               />
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-800 text-sm">{product.title}</h3>
+                <h3 className="font-semibold text-gray-800 text-sm">
+                  {product.title}
+                </h3>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-rose-500 font-bold text-lg">৳{product.offerPrice}</span>
+                  <span className="text-rose-500 font-bold text-lg">
+                    ৳{product.offerPrice}
+                  </span>
                   {product.originalPrice && (
-                    <span className="text-xs text-gray-400 line-through">৳{product.originalPrice}</span>
+                    <span className="text-xs text-gray-400 line-through">
+                      ৳{product.originalPrice}
+                    </span>
                   )}
                 </div>
                 <span className="inline-block bg-rose-500 text-white text-xs px-2 py-0.5 rounded-full mt-1">
@@ -225,12 +280,13 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
           </div>
         )}
 
-        {/* ইনকমপ্লিট নোটিশ (যদি ফোন নাম্বার দিয়ে থাকে কিন্তু অর্ডার না করে) */}
-        {formData.phone && formData.phone.length >= 11 && !isSubmitting && (
+        {/* ইনকমপ্লিট নোটিশ */}
+        {/* {formData.phone && formData.phone.length >= 11 && !isSubmitting && (
           <div className="mx-4 mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700 text-center">
-            💡 আপনার তথ্য সংরক্ষণ করা হয়েছে। পরবর্তীতে অর্ডার সম্পন্ন করতে পারেন।
+            💡 আপনার তথ্য সংরক্ষণ করা হয়েছে। পরবর্তীতে অর্ডার সম্পন্ন করতে
+            পারেন।
           </div>
-        )}
+        )} */}
 
         {/* ফর্ম */}
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
@@ -262,7 +318,9 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
               placeholder="০১XXXXXXXXX"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition"
             />
-            <p className="text-xs text-gray-400 mt-1">ফোন নাম্বার দিলেই আপনার তথ্য সংরক্ষিত হবে</p>
+            <p className="text-xs text-gray-400 mt-1">
+              ফোন নাম্বার দিলেই আপনার তথ্য সংরক্ষিত হবে
+            </p>
           </div>
 
           <div>
@@ -280,7 +338,6 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
             />
           </div>
 
-          {/* বাকি ফর্ম একই থাকবে... */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               ডেলিভারি এলাকা <span className="text-rose-500">*</span>
@@ -301,7 +358,13 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
                   onChange={handleChange}
                   className="hidden"
                 />
-                <FaTruck className={formData.deliveryArea === "inside_dhaka" ? "text-rose-500" : "text-gray-400"} />
+                <FaTruck
+                  className={
+                    formData.deliveryArea === "inside_dhaka"
+                      ? "text-rose-500"
+                      : "text-gray-400"
+                  }
+                />
                 <div>
                   <p className="font-medium text-sm">ঢাকার ভিতরে</p>
                   <p className="text-xs text-gray-500">চার্জ: ৬০ টাকা</p>
@@ -323,7 +386,13 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
                   onChange={handleChange}
                   className="hidden"
                 />
-                <FaTruck className={formData.deliveryArea === "outside_dhaka" ? "text-rose-500" : "text-gray-400"} />
+                <FaTruck
+                  className={
+                    formData.deliveryArea === "outside_dhaka"
+                      ? "text-rose-500"
+                      : "text-gray-400"
+                  }
+                />
                 <div>
                   <p className="font-medium text-sm">ঢাকার বাইরে</p>
                   <p className="text-xs text-gray-500">চার্জ: ১২০ টাকা</p>
@@ -332,13 +401,16 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
             </div>
           </div>
 
-          {/* পেমেন্ট মেথড - COD */}
           <div className="bg-green-50 rounded-lg p-3 border border-green-200">
             <div className="flex items-center gap-2">
               <FaTruck className="text-green-500" />
-              <span className="font-medium text-green-700">ক্যাশ অন ডেলিভারি (COD)</span>
+              <span className="font-medium text-green-700">
+                ক্যাশ অন ডেলিভারি (COD)
+              </span>
             </div>
-            <p className="text-xs text-green-600 mt-1">পণ্য হাতে পেয়ে টাকা দিন</p>
+            <p className="text-xs text-green-600 mt-1">
+              পণ্য হাতে পেয়ে টাকা দিন
+            </p>
           </div>
 
           <div>
@@ -355,7 +427,6 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
             />
           </div>
 
-          {/* ডেলিভারি তথ্য */}
           <div className="bg-gray-50 rounded-lg p-3 text-sm">
             <div className="flex items-center gap-2 mb-2">
               <FaTruck className="text-rose-500" />
@@ -373,21 +444,26 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
             <p className="text-gray-600 text-xs">ক্যাশ অন ডেলিভারি সুবিধা</p>
           </div>
 
-          {/* হোয়াটসঅ্যাপ সাপোর্ট */}
           <div className="bg-green-50 rounded-lg p-3 text-sm flex items-center justify-between">
             <div className="flex items-center gap-2">
               <FaWhatsapp className="text-green-500 text-xl" />
               <div>
-                <p className="font-medium text-gray-800">হোয়াটসঅ্যাপ সাপোর্ট</p>
-                <p className="text-xs text-gray-500">যেকোনো সমস্যায় যোগাযোগ করুন</p>
+                <p className="font-medium text-gray-800">
+                  হোয়াটসঅ্যাপ সাপোর্ট
+                </p>
+                <p className="text-xs text-gray-500">
+                  যেকোনো সমস্যায় যোগাযোগ করুন
+                </p>
               </div>
             </div>
-            <a href="https://wa.me/8801xxxxxxxxx" className="text-green-600 text-sm font-semibold">
+            <a
+              href="https://wa.me/8801xxxxxxxxx"
+              className="text-green-600 text-sm font-semibold"
+            >
               মেসেজ করুন
             </a>
           </div>
 
-          {/* টোটাল প্রাইস */}
           <div className="border-t border-gray-200 pt-4">
             <div className="flex justify-between items-center mb-2">
               <span className="text-gray-600">পণ্যের মূল্য:</span>
@@ -395,16 +471,21 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
             </div>
             <div className="flex justify-between items-center mb-2">
               <span className="text-gray-600">ডেলিভারি চার্জ:</span>
-              <span className="font-semibold">৳{deliveryCharge[formData.deliveryArea]}</span>
+              <span className="font-semibold">
+                ৳{deliveryCharge[formData.deliveryArea]}
+              </span>
             </div>
             <div className="flex justify-between items-center pt-2 border-t border-dashed border-gray-200">
               <span className="text-gray-800 font-bold">মোট মূল্য:</span>
-              <span className="text-xl font-bold text-rose-500">৳{totalPrice}</span>
+              <span className="text-xl font-bold text-rose-500">
+                ৳{totalPrice}
+              </span>
             </div>
-            <p className="text-xs text-gray-400 mt-2">ক্যাশ অন ডেলিভারিতে টাকা দিতে পারবেন</p>
+            <p className="text-xs text-gray-400 mt-2">
+              ক্যাশ অন ডেলিভারিতে টাকা দিতে পারবেন
+            </p>
           </div>
 
-          {/* সাবমিট বাটন */}
           <button
             type="submit"
             disabled={isSubmitting}
@@ -412,9 +493,25 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
           >
             {isSubmitting ? (
               <span className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 প্রসেসিং...
               </span>
@@ -436,27 +533,49 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg
+                className="w-10 h-10 text-green-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
 
-            <h3 className="text-2xl font-bold text-gray-800 mb-2">অর্ডার সফল হয়েছে!</h3>
-            <p className="text-gray-500 text-sm mb-4">আপনার অর্ডারটি সফলভাবে সম্পন্ন হয়েছে।</p>
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">
+              অর্ডার সফল হয়েছে!
+            </h3>
+            <p className="text-gray-500 text-sm mb-4">
+              আপনার অর্ডারটি সফলভাবে সম্পন্ন হয়েছে।
+            </p>
 
             <div className="bg-gray-50 rounded-xl p-4 mb-4">
               <p className="text-sm text-gray-500 mb-1">আপনার অর্ডার আইডি</p>
               <div className="flex items-center justify-center gap-2">
-                <code className="text-lg font-mono font-bold text-rose-600">{orderData.orderId}</code>
+                <code className="text-lg font-mono font-bold text-rose-600">
+                  {orderData.orderId}
+                </code>
                 <button
                   onClick={copyOrderId}
                   className="p-1.5 bg-gray-200 hover:bg-gray-300 rounded-lg transition"
                   title="কপি করুন"
                 >
-                  {copied ? <FaCheck className="text-green-500" size={14} /> : <FaCopy size={14} />}
+                  {copied ? (
+                    <FaCheck className="text-green-500" size={14} />
+                  ) : (
+                    <FaCopy size={14} />
+                  )}
                 </button>
               </div>
-              {copied && <p className="text-xs text-green-500 mt-1">কপি হয়েছে!</p>}
+              {copied && (
+                <p className="text-xs text-green-500 mt-1">কপি হয়েছে!</p>
+              )}
             </div>
 
             <button
