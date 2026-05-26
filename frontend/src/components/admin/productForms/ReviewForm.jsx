@@ -221,95 +221,97 @@ const ReviewForm = ({ data, onChange }) => {
           )}
 
           <div className="space-y-5">
-            {reviews.map((review, idx) => (
-              <div key={idx} className="border border-gray-200 rounded-xl p-4 space-y-3 relative bg-white shadow-sm">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-                    Review #{idx + 1}
-                  </span>
-                  <button
-                    onClick={() => removeReview(idx)}
-                    className="text-red-400 hover:text-red-600 transition p-1"
-                  >
-                    <FaTrash size={14} />
-                  </button>
-                </div>
+  {reviews.map((review, idx) => (
+    <div key={idx} className="border border-gray-200 rounded-xl p-4 space-y-3 bg-white shadow-sm">
+      {/* relative ক্লাস সরানো হয়েছে */}
+      
+      <div className="flex justify-between items-center">
+        <span className="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+          Review #{idx + 1}
+        </span>
+        <button
+          onClick={() => removeReview(idx)}
+          className="text-red-400 hover:text-red-600 transition p-1"
+        >
+          <FaTrash size={14} />
+        </button>
+      </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs text-gray-500">Name *</label>
-                    <input
-                      type="text"
-                      value={review.name}
-                      onChange={(e) => updateReview(idx, "name", e.target.value)}
-                      className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm"
-                      placeholder="Customer name"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500">Location</label>
-                    <input
-                      type="text"
-                      value={review.location}
-                      onChange={(e) => updateReview(idx, "location", e.target.value)}
-                      className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm"
-                      placeholder="e.g., Dhaka"
-                    />
-                  </div>
-                </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs text-gray-500">Name *</label>
+          <input
+            type="text"
+            value={review.name}
+            onChange={(e) => updateReview(idx, "name", e.target.value)}
+            className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm"
+            placeholder="Customer name"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-gray-500">Location</label>
+          <input
+            type="text"
+            value={review.location}
+            onChange={(e) => updateReview(idx, "location", e.target.value)}
+            className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm"
+            placeholder="e.g., Dhaka"
+          />
+        </div>
+      </div>
 
-                <div>
-                  <label className="text-xs text-gray-500">Rating</label>
-                  <div className="flex gap-1 mt-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        type="button"
-                        onClick={() => updateReview(idx, "rating", star)}
-                        className="focus:outline-none"
-                      >
-                        <FaStar className={`${star <= review.rating ? "text-yellow-400" : "text-gray-300"} text-xl`} />
-                      </button>
-                    ))}
-                  </div>
-                </div>
+      <div>
+        <label className="text-xs text-gray-500">Rating</label>
+        <div className="flex gap-1 mt-1">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              type="button"
+              onClick={() => updateReview(idx, "rating", star)}
+              className="focus:outline-none"
+            >
+              <FaStar className={`${star <= review.rating ? "text-yellow-400" : "text-gray-300"} text-xl`} />
+            </button>
+          ))}
+        </div>
+      </div>
 
-                <div>
-                  <label className="text-xs text-gray-500">Comment *</label>
-                  <textarea
-                    value={review.comment}
-                    onChange={(e) => updateReview(idx, "comment", e.target.value)}
-                    rows="2"
-                    className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none"
-                    placeholder="Customer review comment"
-                  />
-                </div>
+      <div>
+        <label className="text-xs text-gray-500">Comment *</label>
+        <textarea
+          value={review.comment}
+          onChange={(e) => updateReview(idx, "comment", e.target.value)}
+          rows="2"
+          className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none"
+          placeholder="Customer review comment"
+        />
+      </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs text-gray-500">Date</label>
-                    <input
-                      type="text"
-                      value={review.date}
-                      onChange={(e) => updateReview(idx, "date", e.target.value)}
-                      className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm"
-                      placeholder="১৫ মার্চ, ২০২৪"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500">Avatar URL</label>
-                    <input
-                      type="text"
-                      value={review.avatar}
-                      onChange={(e) => updateReview(idx, "avatar", e.target.value)}
-                      className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm"
-                      placeholder="https://randomuser.me/api/portraits/..."
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs text-gray-500">Date</label>
+          <input
+            type="text"
+            value={review.date}
+            onChange={(e) => updateReview(idx, "date", e.target.value)}
+            className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm"
+            placeholder="১৫ মার্চ, ২০২৪"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-gray-500">Avatar URL</label>
+          <input
+            type="text"
+            value={review.avatar}
+            onChange={(e) => updateReview(idx, "avatar", e.target.value)}
+            className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm"
+            placeholder="https://randomuser.me/api/portraits/..."
+          />
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
 
           {reviews.length > 0 && (
             <div className="mt-4 text-center">
