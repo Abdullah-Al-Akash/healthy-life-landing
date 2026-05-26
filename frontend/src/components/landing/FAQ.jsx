@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { FaFacebook, FaWhatsapp, FaPhoneAlt } from "react-icons/fa";
 import CheckoutDrawer from "./CheckoutDrawer";
@@ -15,28 +15,40 @@ const FAQ = ({
   const [openIndex, setOpenIndex] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  
+  const [localSupportHours, setLocalSupportHours] = useState(supportHours);
 
-  // FAQ সেকশনের বাটন টেক্সট buttonTexts.faq থেকে নিচ্ছে
+  useEffect(() => {
+  console.log("🔍 FAQ - contactHeading received:", contactHeading);
+  console.log("🔍 FAQ - heading received:", heading);
+}, [contactHeading, heading]);
+
+  useEffect(() => {
+    setLocalSupportHours(supportHours);
+  }, [supportHours]);
+
   const faqButtonText = buttonTexts?.faq || "এখনই অর্ডার করুন";
 
-  // ডিফল্ট হেডিং
   const defaultHeading = {
     title: "প্রায়শই জিজ্ঞাসিত প্রশ্ন",
     highlightText: "প্রশ্ন",
     subtitle: "আপনার মনে হতে পারে এমন কিছু সাধারণ প্রশ্নের উত্তর জেনে নিন"
   };
 
-  // ডিফল্ট কন্টাক্ট হেডিং
   const defaultContactHeading = {
     title: "এখনও প্রশ্ন আছে?",
     subtitle: "আমাদের সাথে সরাসরি যোগাযোগ করুন। আমরা ২৪/৭ ঘন্টা আপনার পাশে আছি।",
     hotlineLabel: "হটলাইন:"
   };
 
-  const { title, highlightText, subtitle } = heading || defaultHeading;
-  const { title: contactTitle, subtitle: contactSubtitle, hotlineLabel } = contactHeading || defaultContactHeading;
+  // যোগ করেছি: contactHeading প্রপস থেকে মান নেওয়া, না থাকলে ডিফল্ট
+  const finalContactHeading = contactHeading && Object.keys(contactHeading).length > 0 
+    ? contactHeading 
+    : defaultContactHeading;
 
-  // ডিফল্ট FAQ (যদি API থেকে না আসে)
+  const { title, highlightText, subtitle } = heading || defaultHeading;
+  const { title: contactTitle, subtitle: contactSubtitle, hotlineLabel } = finalContactHeading;
+
   const defaultFaqs = [
     {
       id: 1,
@@ -70,7 +82,6 @@ const FAQ = ({
     },
   ];
 
-  // ডিফল্ট যোগাযোগ তথ্য
   const defaultContactInfo = {
     facebook: "https://facebook.com/herbalcare",
     whatsapp: "https://wa.me/8801xxxxxxxxx",
@@ -84,7 +95,6 @@ const FAQ = ({
     setOpenIndex(openIndex === index ? null : index);
   };
 
-  // হাইলাইট টেক্সট সহ টাইটেল রেন্ডার
   const renderTitle = () => {
     if (!highlightText || !title.includes(highlightText)) {
       return <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">{title}</h2>;
@@ -117,10 +127,10 @@ const FAQ = ({
 
   return (
     <>
-      <section className="">
+      <section className="py-16 md:py-24 bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          {/* সেকশন হেডার - ডাইনামিক */}
+          {/* সেকশন হেডার */}
           <div className="text-center mb-12 md:mb-16">
             {renderTitle()}
             <div className="w-24 h-1 bg-rose-500 mx-auto mb-6 rounded-full"></div>
@@ -129,7 +139,7 @@ const FAQ = ({
             </p>
           </div>
 
-          {/* FAQ লিস্ট - ডাইনামিক */}
+          {/* FAQ লিস্ট */}
           <div className="space-y-4">
             {displayFaqs.map((faq, index) => (
               <div
@@ -165,7 +175,7 @@ const FAQ = ({
             ))}
           </div>
 
-          {/* যোগাযোগ সেকশন - ডাইনামিক */}
+          {/* যোগাযোগ সেকশন */}
           <div className="mt-12 bg-gradient-to-r from-rose-50 to-pink-50 rounded-2xl p-6 md:p-10">
             <div className="text-center mb-6">
               <h3 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">
@@ -178,7 +188,6 @@ const FAQ = ({
 
             {/* সোশ্যাল ও কন্টাক্ট আইকন */}
             <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
-              {/* ফেসবুক */}
               <a
                 href={displayContactInfo.facebook}
                 target="_blank"
@@ -193,7 +202,6 @@ const FAQ = ({
                 </span>
               </a>
 
-              {/* হোয়াটসঅ্যাপ */}
               <a
                 href={displayContactInfo.whatsapp}
                 target="_blank"
@@ -208,7 +216,6 @@ const FAQ = ({
                 </span>
               </a>
 
-              {/* ফোন */}
               <a
                 href={`tel:${displayContactInfo.phone}`}
                 className="group flex flex-col items-center gap-2"
@@ -222,17 +229,17 @@ const FAQ = ({
               </a>
             </div>
 
-            {/* ফোন নাম্বার টেক্সট - ডাইনামিক */}
+            {/* ফোন নাম্বার টেক্সট */}
             <div className="text-center mt-6">
               <p className="text-gray-500 text-sm">
                 {hotlineLabel} <span className="font-semibold text-rose-600">{displayContactInfo.phone}</span>
               </p>
               <p className="text-gray-400 text-xs mt-1">
-                {supportHours}
+                {localSupportHours}
               </p>
             </div>
 
-            {/* অর্ডার বাটন - ডাইনামিক */}
+            {/* অর্ডার বাটন */}
             <div className="text-center mt-6">
               <button
                 onClick={handleOrderClick}

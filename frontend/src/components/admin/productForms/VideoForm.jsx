@@ -112,7 +112,7 @@ const VideoForm = ({ data, onChange }) => {
               value={sectionHeadings.video?.subtitle || ""}
               onChange={(e) => updateSectionHeading("subtitle", e.target.value)}
               rows="2"
-              placeholder="আমাদের পণ্য如何使用, এর উপকারিতা এবং ব্যবহার পদ্ধতি সম্পর্কে ভিডিওতে দেখুন"
+              placeholder="আমাদের পণ্য সম্পর্কে, এর উপকারিতা এবং ব্যবহার পদ্ধতি সম্পর্কে ভিডিওতে দেখুন"
               className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-rose-400 focus:border-rose-400 outline-none transition resize-none"
             />
           </div>
