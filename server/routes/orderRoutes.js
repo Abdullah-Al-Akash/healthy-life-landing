@@ -12,11 +12,12 @@ const {
   updateCustomerInfo
 } = require('../controllers/orderController');
 const { protect, admin } = require('../middleware/auth');
+const orderLimiter = require('../middleware/orderLimiter');
 
 const router = express.Router();
 
 // পাবলিক
-router.post('/', createOrder);
+router.post('/', orderLimiter, createOrder);
 router.get('/search', searchOrders);
 router.get('/track/:orderId', getOrderByOrderId);
 
