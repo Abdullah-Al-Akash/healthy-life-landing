@@ -207,7 +207,7 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
       }
     } catch (error) {
       console.error("Order error:", error);
-      
+
       // Rate Limit Error (429)
       if (error.response?.status === 429) {
         const waitMinutes = error.response?.data?.waitMinutes || 30;
@@ -220,19 +220,23 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
           type: "error",
           text: `আপনি সম্প্রতি একটি অর্ডার করেছেন। দয়া করে ${waitMinutes} মিনিট পর আবার চেষ্টা করুন।`,
         });
-      } 
+      }
       // IP Block Error (403)
       else if (error.response?.status === 403) {
         setSubmitMessage({
           type: "error",
-          text: error.response?.data?.message || "আপনার আইপি ব্লক করা হয়েছে। সহায়তার জন্য যোগাযোগ করুন।",
+          text:
+            error.response?.data?.message ||
+            "আপনার আইপি ব্লক করা হয়েছে। সহায়তার জন্য যোগাযোগ করুন।",
         });
       }
       // Other Errors
       else {
         setSubmitMessage({
           type: "error",
-          text: error.response?.data?.message || "সার্ভারে সমস্যা হয়েছে। পরে আবার চেষ্টা করুন।",
+          text:
+            error.response?.data?.message ||
+            "সার্ভারে সমস্যা হয়েছে। পরে আবার চেষ্টা করুন।",
         });
       }
     } finally {
@@ -267,42 +271,13 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
               <p className="text-xs text-gray-500">ক্যাশ অন ডেলিভারি</p>
             </div>
           </div>
-          <button onClick={handleClose} className="p-2 hover:bg-gray-100 rounded-full">
+          <button
+            onClick={handleClose}
+            className="p-2 hover:bg-gray-100 rounded-full"
+          >
             <FaTimes className="text-gray-500" />
           </button>
         </div>
-
-        {/* রেট লিমিট এরর সেকশন */}
-        {rateLimitInfo && (
-          <div className="m-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-center">
-            <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <FaClock className="text-amber-600 text-xl" />
-            </div>
-            <h3 className="text-lg font-semibold text-amber-800 mb-2">
-              আপনি ইতিমধ্যে একটি অর্ডার করেছেন!
-            </h3>
-            <p className="text-sm text-amber-700 mb-4">
-              {rateLimitInfo.message || `দয়া করে ${rateLimitInfo.waitMinutes} মিনিট পর আবার চেষ্টা করুন।`}
-            </p>
-            {waitTime > 0 && (
-              <p className="text-xs text-amber-600 mb-4">
-                ⏱️ {waitTime} মিনিট বাকি
-              </p>
-            )}
-            <a
-              href="https://wa.me/8801xxxxxxxxx"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-            >
-              <FaWhatsapp size={18} />
-              WhatsApp এ যোগাযোগ করুন
-            </a>
-            <p className="text-xs text-amber-600 mt-3">
-              অর্ডার করতে সমস্যা হলে আমাদের WhatsApp এ জানান।
-            </p>
-          </div>
-        )}
 
         {/* সাকসেস/এরর মেসেজ */}
         {submitMessage.text && !showSuccessModal && !rateLimitInfo && (
@@ -322,16 +297,25 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
           <div className="p-4 bg-gradient-to-r from-rose-50 to-pink-50 border-b border-rose-100">
             <div className="flex gap-3">
               <img
-                src={product.image || "https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=1200"}
+                src={
+                  product.image ||
+                  "https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=1200"
+                }
                 alt={product.title}
                 className="w-16 h-16 rounded-lg object-cover"
               />
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-800 text-sm">{product.title}</h3>
+                <h3 className="font-semibold text-gray-800 text-sm">
+                  {product.title}
+                </h3>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-rose-500 font-bold text-lg">৳{product.offerPrice}</span>
+                  <span className="text-rose-500 font-bold text-lg">
+                    ৳{product.offerPrice}
+                  </span>
                   {product.originalPrice && (
-                    <span className="text-xs text-gray-400 line-through">৳{product.originalPrice}</span>
+                    <span className="text-xs text-gray-400 line-through">
+                      ৳{product.originalPrice}
+                    </span>
                   )}
                 </div>
                 <span className="inline-block bg-rose-500 text-white text-xs px-2 py-0.5 rounded-full mt-1">
@@ -374,7 +358,9 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
               placeholder="০১XXXXXXXXX"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
-            <p className="text-xs text-gray-400 mt-1">ফোন নাম্বার দিলেই আপনার তথ্য সংরক্ষিত হবে</p>
+            <p className="text-xs text-gray-400 mt-1">
+              ফোন নাম্বার দিলেই আপনার তথ্য সংরক্ষিত হবে
+            </p>
           </div>
 
           <div>
@@ -398,7 +384,9 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
               ডেলিভারি এলাকা <span className="text-rose-500">*</span>
             </label>
             <div className="grid grid-cols-2 gap-3">
-              <label className={`flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer transition ${formData.deliveryArea === "inside_dhaka" ? "border-rose-500 bg-rose-50" : "border-gray-200 hover:border-gray-300"} ${rateLimitInfo ? "opacity-50 cursor-not-allowed" : ""}`}>
+              <label
+                className={`flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer transition ${formData.deliveryArea === "inside_dhaka" ? "border-rose-500 bg-rose-50" : "border-gray-200 hover:border-gray-300"} ${rateLimitInfo ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
                 <input
                   type="radio"
                   name="deliveryArea"
@@ -408,11 +396,22 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
                   disabled={!!rateLimitInfo}
                   className="hidden"
                 />
-                <FaTruck className={formData.deliveryArea === "inside_dhaka" ? "text-rose-500" : "text-gray-400"} />
-                <div><p className="font-medium text-sm">ঢাকার ভিতরে</p><p className="text-xs text-gray-500">চার্জ: ৬০ টাকা</p></div>
+                <FaTruck
+                  className={
+                    formData.deliveryArea === "inside_dhaka"
+                      ? "text-rose-500"
+                      : "text-gray-400"
+                  }
+                />
+                <div>
+                  <p className="font-medium text-sm">ঢাকার ভিতরে</p>
+                  <p className="text-xs text-gray-500">চার্জ: ৬০ টাকা</p>
+                </div>
               </label>
 
-              <label className={`flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer transition ${formData.deliveryArea === "outside_dhaka" ? "border-rose-500 bg-rose-50" : "border-gray-200 hover:border-gray-300"} ${rateLimitInfo ? "opacity-50 cursor-not-allowed" : ""}`}>
+              <label
+                className={`flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer transition ${formData.deliveryArea === "outside_dhaka" ? "border-rose-500 bg-rose-50" : "border-gray-200 hover:border-gray-300"} ${rateLimitInfo ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
                 <input
                   type="radio"
                   name="deliveryArea"
@@ -422,8 +421,17 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
                   disabled={!!rateLimitInfo}
                   className="hidden"
                 />
-                <FaTruck className={formData.deliveryArea === "outside_dhaka" ? "text-rose-500" : "text-gray-400"} />
-                <div><p className="font-medium text-sm">ঢাকার বাইরে</p><p className="text-xs text-gray-500">চার্জ: ১২০ টাকা</p></div>
+                <FaTruck
+                  className={
+                    formData.deliveryArea === "outside_dhaka"
+                      ? "text-rose-500"
+                      : "text-gray-400"
+                  }
+                />
+                <div>
+                  <p className="font-medium text-sm">ঢাকার বাইরে</p>
+                  <p className="text-xs text-gray-500">চার্জ: ১২০ টাকা</p>
+                </div>
               </label>
             </div>
           </div>
@@ -431,9 +439,13 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
           <div className="bg-green-50 rounded-lg p-3 border border-green-200">
             <div className="flex items-center gap-2">
               <FaTruck className="text-green-500" />
-              <span className="font-medium text-green-700">ক্যাশ অন ডেলিভারি (COD)</span>
+              <span className="font-medium text-green-700">
+                ক্যাশ অন ডেলিভারি (COD)
+              </span>
             </div>
-            <p className="text-xs text-green-600 mt-1">পণ্য হাতে পেয়ে টাকা দিন</p>
+            <p className="text-xs text-green-600 mt-1">
+              পণ্য হাতে পেয়ে টাকা দিন
+            </p>
           </div>
 
           <div>
@@ -456,7 +468,11 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
               <FaTruck className="text-rose-500" />
               <span className="font-medium">ডেলিভারি তথ্য</span>
             </div>
-            <p className="text-gray-600 text-xs">{formData.deliveryArea === "inside_dhaka" ? "ঢাকায় ২৪ ঘন্টার মধ্যে ডেলিভারি" : "ঢাকার বাইরে ২-৩ কর্মদিবসের মধ্যে ডেলিভারি"}</p>
+            <p className="text-gray-600 text-xs">
+              {formData.deliveryArea === "inside_dhaka"
+                ? "ঢাকায় ২৪ ঘন্টার মধ্যে ডেলিভারি"
+                : "ঢাকার বাইরে ২-৩ কর্মদিবসের মধ্যে ডেলিভারি"}
+            </p>
             <div className="flex items-center gap-2 mt-2">
               <FaShieldAlt className="text-rose-500" />
               <span className="font-medium">নিরাপদ পেমেন্ট</span>
@@ -468,11 +484,20 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
             <div className="flex items-center gap-2">
               <FaWhatsapp className="text-green-500 text-xl" />
               <div>
-                <p className="font-medium text-gray-800">হোয়াটসঅ্যাপ সাপোর্ট</p>
-                <p className="text-xs text-gray-500">যেকোনো সমস্যায় যোগাযোগ করুন</p>
+                <p className="font-medium text-gray-800">
+                  হোয়াটসঅ্যাপ সাপোর্ট
+                </p>
+                <p className="text-xs text-gray-500">
+                  যেকোনো সমস্যায় যোগাযোগ করুন
+                </p>
               </div>
             </div>
-            <a href="https://wa.me/8801xxxxxxxxx" className="text-green-600 text-sm font-semibold">মেসেজ করুন</a>
+            <a
+              href="https://wa.me/8801xxxxxxxxx"
+              className="text-green-600 text-sm font-semibold"
+            >
+              মেসেজ করুন
+            </a>
           </div>
 
           <div className="border-t border-gray-200 pt-4">
@@ -482,15 +507,48 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
             </div>
             <div className="flex justify-between items-center mb-2">
               <span className="text-gray-600">ডেলিভারি চার্জ:</span>
-              <span className="font-semibold">৳{deliveryCharge[formData.deliveryArea]}</span>
+              <span className="font-semibold">
+                ৳{deliveryCharge[formData.deliveryArea]}
+              </span>
             </div>
             <div className="flex justify-between items-center pt-2 border-t border-dashed border-gray-200">
               <span className="text-gray-800 font-bold">মোট মূল্য:</span>
-              <span className="text-xl font-bold text-rose-500">৳{totalPrice}</span>
+              <span className="text-xl font-bold text-rose-500">
+                ৳{totalPrice}
+              </span>
             </div>
-            <p className="text-xs text-gray-400 mt-2">ক্যাশ অন ডেলিভারিতে টাকা দিতে পারবেন</p>
+            <p className="text-xs text-gray-400 mt-2">
+              ক্যাশ অন ডেলিভারিতে টাকা দিতে পারবেন
+            </p>
           </div>
-
+          {rateLimitInfo && (
+            <div className="m-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-center">
+              <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <FaClock className="text-amber-600 text-xl" />
+              </div>
+              <h3 className="text-lg font-semibold text-amber-800 mb-2">
+                আপনি ইতিমধ্যে একটি অর্ডার করেছেন!
+              </h3>
+              
+              {waitTime > 0 && (
+                <p className="text-xs text-amber-600 mb-4">
+                  ⏱️ {waitTime} মিনিট বাকি
+                </p>
+              )}
+              <a
+                href="https://wa.me/8801924512833"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+              >
+                <FaWhatsapp size={18} />
+                WhatsApp এ যোগাযোগ করুন
+              </a>
+              <p className="text-xs text-amber-600 mt-3">
+                অর্ডার করতে সমস্যা হলে আমাদের WhatsApp এ জানান।
+              </p>
+            </div>
+          )}
           <button
             type="submit"
             disabled={isSubmitting || !!rateLimitInfo}
@@ -498,9 +556,25 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
           >
             {isSubmitting ? (
               <span className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 প্রসেসিং...
               </span>
@@ -508,34 +582,78 @@ const CheckoutDrawer = ({ isOpen, onClose, product }) => {
               `অর্ডার কনফার্ম করুন (৳${totalPrice})`
             )}
           </button>
+          {/* রেট লিমিট এরর সেকশন */}
         </form>
       </div>
 
       {/* সাকসেস মোডাল */}
       {showSuccessModal && orderData && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[200000] p-4" onClick={() => setShowSuccessModal(false)}>
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 text-center animate-scaleIn" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[200000] p-4"
+          onClick={() => setShowSuccessModal(false)}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-md w-full p-6 text-center animate-scaleIn"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg
+                className="w-10 h-10 text-green-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-2">অর্ডার সফল হয়েছে!</h3>
-            <p className="text-gray-500 text-sm mb-4">আপনার অর্ডারটি সফলভাবে সম্পন্ন হয়েছে।</p>
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">
+              অর্ডার সফল হয়েছে!
+            </h3>
+            <p className="text-gray-500 text-sm mb-4">
+              আপনার অর্ডারটি সফলভাবে সম্পন্ন হয়েছে।
+            </p>
             <div className="bg-gray-50 rounded-xl p-4 mb-4">
               <p className="text-sm text-gray-500 mb-1">আপনার অর্ডার আইডি</p>
               <div className="flex items-center justify-center gap-2">
-                <code className="text-lg font-mono font-bold text-rose-600">{orderData.orderId}</code>
-                <button onClick={copyOrderId} className="p-1.5 bg-gray-200 hover:bg-gray-300 rounded-lg transition">
-                  {copied ? <FaCheck className="text-green-500" size={14} /> : <FaCopy size={14} />}
+                <code className="text-lg font-mono font-bold text-rose-600">
+                  {orderData.orderId}
+                </code>
+                <button
+                  onClick={copyOrderId}
+                  className="p-1.5 bg-gray-200 hover:bg-gray-300 rounded-lg transition"
+                >
+                  {copied ? (
+                    <FaCheck className="text-green-500" size={14} />
+                  ) : (
+                    <FaCopy size={14} />
+                  )}
                 </button>
               </div>
-              {copied && <p className="text-xs text-green-500 mt-1">কপি হয়েছে!</p>}
+              {copied && (
+                <p className="text-xs text-green-500 mt-1">কপি হয়েছে!</p>
+              )}
             </div>
-            <button onClick={() => { setShowSuccessModal(false); window.location.href = `/track-order?orderId=${orderData.orderId}`; }} className="w-full bg-gradient-to-r from-rose-500 to-pink-500 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 mb-3 hover:scale-105 transition">
+            <button
+              onClick={() => {
+                setShowSuccessModal(false);
+                window.location.href = `/track-order?orderId=${orderData.orderId}`;
+              }}
+              className="w-full bg-gradient-to-r from-rose-500 to-pink-500 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 mb-3 hover:scale-105 transition"
+            >
               <FaExternalLinkAlt size={14} /> অর্ডার ট্র্যাক করুন
             </button>
-            <button onClick={() => { setShowSuccessModal(false); handleClose(); }} className="w-full border border-gray-300 text-gray-600 py-3 rounded-xl font-semibold hover:bg-gray-50 transition">
+            <button
+              onClick={() => {
+                setShowSuccessModal(false);
+                handleClose();
+              }}
+              className="w-full border border-gray-300 text-gray-600 py-3 rounded-xl font-semibold hover:bg-gray-50 transition"
+            >
               ঠিক আছে
             </button>
           </div>
