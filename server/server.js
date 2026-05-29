@@ -14,6 +14,7 @@ app.use(express.json());
 const allowedOrigins = [
   "http://localhost:5173",
   "https://harbel-healthy-life.netlify.app",
+  "https://healthylife-online.com",
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
