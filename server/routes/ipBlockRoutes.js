@@ -9,7 +9,6 @@ const { protect, admin } = require('../middleware/auth');
 
 const router = express.Router();
 
-// সব রাউট অ্যাডমিন এবং প্রটেক্টেড
 router.use(protect, admin);
 
 router.get('/', getBlockedIPs);
