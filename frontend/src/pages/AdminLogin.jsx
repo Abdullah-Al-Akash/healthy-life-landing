@@ -136,12 +136,6 @@ const AdminLogin = () => {
               'Sign In'
             )}
           </button>
-
-          <div className="text-center text-xs text-gray-400">
-            <p>Demo Credentials:</p>
-            <p>Email: admin@herbalcare.com</p>
-            <p>Password: Admin@123456</p>
-          </div>
         </form>
       </div>
     </div>
