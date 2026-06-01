@@ -4,6 +4,7 @@ import { FiTruck, FiHeadphones, FiChevronRight } from "react-icons/fi";
 import { FaWhatsapp, FaLeaf, FaHome, FaBox } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { productApi } from "../../api/product";
+import logo from "../../assets/logo.png";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -11,7 +12,7 @@ const Navbar = () => {
   const [loading, setLoading] = useState(true);
 
   const contactInfo = {
-    whatsapp: "https://wa.me/8801xxxxxxxxx",
+    whatsapp: "https://wa.me/8801924512833?text=Hello%20Healthy%20Life!%20I%20have%20a%20question%20about%20your%20products.",
   };
 
   useEffect(() => {
@@ -57,14 +58,13 @@ const Navbar = () => {
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* লোগো */}
             <a href="/" className="group flex items-center gap-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-rose-500 to-amber-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+              {/* <div className="w-10 h-10 bg-gradient-to-br from-rose-500 to-amber-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
                 <FaLeaf className="text-white text-xl" />
-              </div>
+              </div> */}
               <div>
                 <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-rose-500 to-amber-500 bg-clip-text text-transparent">
-                  Healthy Life
+                  <img src={logo} className="w-2/3" alt="logo" />
                 </span>
-                <p className="text-[10px] text-gray-400 -mt-1">Natural & Organic</p>
               </div>
             </a>
 
@@ -165,12 +165,9 @@ const Navbar = () => {
               <div className="bg-gradient-to-r from-rose-500 to-amber-500 p-6">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                      <FaLeaf className="text-white text-2xl" />
-                    </div>
                     <div>
-                      <h2 className="text-xl font-bold text-white">Healthy Life</h2>
-                      <p className="text-xs text-rose-100">Natural & Organic</p>
+                      <h2 className="text-xl font-bold text-white italic">Healthy Life</h2>
+                      <p className="text-xs text-rose-100 ms-6 italic">Since 2022</p>
                     </div>
                   </div>
                   <button

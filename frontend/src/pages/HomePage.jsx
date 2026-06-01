@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { FaLeaf, FaArrowRight, FaBox, FaStar, FaEye, FaTruck, FaHeadset, FaLeaf as FaLeafIcon } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { productApi } from "../api/product";
+import logo from "../assets/logo.png";
 
 const HomePage = () => {
   const [products, setProducts] = useState([]);
@@ -52,7 +53,7 @@ const HomePage = () => {
             transition={{ duration: 0.6, type: "spring" }}
             className="w-20 h-20 md:w-28 md:h-28 bg-gradient-to-r from-rose-500 to-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xl"
           >
-            <FaLeaf className="text-white text-3xl md:text-5xl" />
+            <img src={logo} alt="logo" />
           </motion.div>
 
           {/* ব্যাজ */}
