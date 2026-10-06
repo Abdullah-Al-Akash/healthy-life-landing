@@ -15,6 +15,7 @@ const allowedOrigins = [
   "http://localhost:5173",
   "https://harbel-healthy-life.netlify.app",
   "https://healthylife-online.com",
+  "https://healthylife-bd.store",
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
@@ -121,15 +122,15 @@ const startServer = async () => {
   try {
     // ডাটাবেস কানেক্ট করো
     await connectDB();
-    console.log('✅ Database connected successfully');
-    
+    console.log("✅ Database connected successfully");
+
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📋 Allowed origins: ${allowedOrigins.join(", ")}`);
     });
   } catch (error) {
-    console.error('❌ Failed to start server:', error.message);
+    console.error("❌ Failed to start server:", error.message);
     process.exit(1);
   }
 };
